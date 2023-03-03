@@ -244,7 +244,27 @@ public class WavesUtil: WavesUtilProtocol {
 extension WavesUtil {
     
     public func keyPair(seed: Seed) -> KeyPair? {
-        return nil
+        
+        let seedData = Data(seedHash(Array(seed.utf8)))
+        
+        guard let pair = Curve25519.generateKeyPair(seedData) else { return nil }
+        
+        guard let privateKeyData = pair.privateKey() else { return nil }
+        let privateKeyBytes = privateKeyData.withUnsafeBytes {
+            [UInt8]($0)
+        }
+        
+        guard let publicKeyData = pair.publicKey() else { return nil }
+        let publicKeyBytes = publicKeyData.withUnsafeBytes {
+            [UInt8]($0)
+        }
+        
+        guard let privateKey = base58encode(input: privateKeyBytes) else { return nil }
+        guard let publicKey = base58encode(input: publicKeyBytes) else { return nil }
+        
+        return KeyPair(publicKey: publicKey,
+                       privateKey: privateKey)
+        
     }
     
     public func publicKey(seed: Seed) -> PublicKey? {

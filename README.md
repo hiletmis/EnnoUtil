@@ -1,3 +1,3 @@
 # WavesUtil
 
-A description of this package.
+Waves Blockchain utilities in form of Swift Package Manager
