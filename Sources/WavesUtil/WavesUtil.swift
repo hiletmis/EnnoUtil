@@ -1,10 +1,7 @@
 
-import Foundation
-import CommonCrypto
+import Foundation 
 import Crpytoworks
-import Keccak
 import Curve25519
-import Blake2
 import Ed25519
 
 public typealias Base58 = String
@@ -14,6 +11,10 @@ public typealias PublicKey = String
 public typealias PrivateKey = String
 public typealias Seed = String
 public typealias Address = String
+
+public typealias EthereumAddress = String
+public typealias EthereumPrivateKey = String
+public typealias EthereumPublicKey = String
 
 public struct KeyPair {
     public let publicKey: PublicKey
@@ -32,8 +33,18 @@ public enum WavesCryptoConstants {
     internal static let addressLength: Int = 1 + 1 + hashLength + checksumLength
 }
 
+public enum VersionBytes: String {
+    public typealias RawValue = String
+        
+    case mainnetPublic = "0488b21e"
+    case mainnetPrivate = "0488ade4"
+    case testnetPublic = "043587cf"
+    case testnetPrivate = "04358394"
+}
 
-public protocol WavesUtilProtocol {
+
+
+public protocol CryptoUtilProtocol {
 
     /**
      BLAKE2 are cryptographic hash function
@@ -164,7 +175,7 @@ public protocol WavesUtilProtocol {
     func verifyAddress(address: Address, chainId: UInt8?, publicKey: PublicKey?) -> Bool
 }
  
-public class WavesUtil: WavesUtilProtocol {
+public class WavesUtil: CryptoUtilProtocol {
     
     public init() {}
     
@@ -278,6 +289,35 @@ extension WavesUtil {
     public func randomSeed() -> Seed {
         return generatePhrase()
     }
+    
+    public func getBip39Seed(seed: Seed, passphrase: String) -> String? {
+        return Web3Crypto.getBip39Seed(seed: seed, passphrase: passphrase)
+    }
+    
+    public func getRootKey(seed: Seed, passphrase: String) -> String? {
+        return Web3Crypto.getRootKey(seed: seed, passphrase: passphrase)
+    }
+    
+    public func getRootKey(bip39: String) -> String? {
+        return Web3Crypto.getHmac(bip39: bip39)
+    }
+    
+    public func getXprv(seed: Seed, passphrase: String, version: VersionBytes = .mainnetPrivate) -> String? {
+        return Web3Crypto.getXprv(seed: seed, passphrase: passphrase, version: version)
+    }
+    
+    public func getXprv(rootKey: String) -> String? {
+        return Web3Crypto.getXprv(rootKey: rootKey)
+    }
+    
+    public func getXpub(seed: Seed, passphrase: String) -> String? {
+        return Web3Crypto.getXpub(seed: seed, passphrase: passphrase)
+    }
+    
+    public func getXpub(xPrv: String) -> String? {
+        return Web3Crypto.getXpub(xPrv: xPrv)
+    }
+    
 }
 
 // MARK: - Methods Hash
@@ -285,37 +325,15 @@ extension WavesUtil {
 extension WavesUtil {
     
     public func blake2b256(input: Bytes) -> Bytes {
-        
-        var data = Data(count: WavesCryptoConstants.keyLength)
-        var key: UInt8 = 0
-        data.withUnsafeMutableBytes { (rawPointer) -> Void in
-            guard let bytes = rawPointer.bindMemory(to: UInt8.self).baseAddress else { return }
-            crypto_generichash_blake2b(bytes, WavesCryptoConstants.keyLength, input, UInt64(input.count), &key, 0)
-        }
-        
-        return Array(data)
+        CryptoFx.blake2b256(input: input)
     }
     
     public func keccak256(input: Bytes) -> Bytes {
-        
-        var data = Data(count: WavesCryptoConstants.keyLength)
-        
-        data.withUnsafeMutableBytes { (rawPointer) -> Void in
-            guard let bytes = rawPointer.bindMemory(to: UInt8.self).baseAddress else { return }
-            keccak(Array(input), Int32(input.count), bytes, 32)
-        }
-        
-        return Array(data)
+        CryptoFx.keccak256(input: input)
     }
     
     public func sha256(input: Bytes) -> Bytes {
-        
-        let len = Int(CC_SHA256_DIGEST_LENGTH)
-        var digest = [UInt8](repeating: 0, count: len)
-        
-        CC_SHA256(input, CC_LONG(input.count), &digest)
-        
-        return Array(digest[0..<len])
+        CryptoFx.sha256(input: input)
     }
 }
 
@@ -369,7 +387,6 @@ private extension WavesUtil {
     
     
     func secureHash(_ input: Bytes) -> Bytes {
-        
         return keccak256(input: blake2b256(input: input))
     }
     
@@ -415,7 +432,7 @@ private extension WavesUtil {
     }
     
     private func generatePhrase() -> String {
-        let nbWords = 15;
+        let nbWords = 24;
         let len = nbWords / 3 * 4;
         let entropy = randomBytes(len)
         
