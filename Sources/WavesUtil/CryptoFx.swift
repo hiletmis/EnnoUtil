@@ -14,11 +14,11 @@ class CryptoFx {
     
     public class func blake2b256(input: Bytes) -> Bytes {
         
-        var data = Data(count: WavesCryptoConstants.keyLength)
+        var data = Data(count: CryptoConstants.keyLength)
         var key: UInt8 = 0
         data.withUnsafeMutableBytes { (rawPointer) -> Void in
             guard let bytes = rawPointer.bindMemory(to: UInt8.self).baseAddress else { return }
-            crypto_generichash_blake2b(bytes, WavesCryptoConstants.keyLength, input, UInt64(input.count), &key, 0)
+            crypto_generichash_blake2b(bytes, CryptoConstants.keyLength, input, UInt64(input.count), &key, 0)
         }
         
         return Array(data)
@@ -26,7 +26,7 @@ class CryptoFx {
     
     public class func keccak256(input: Bytes) -> Bytes {
         
-        var data = Data(count: WavesCryptoConstants.keyLength)
+        var data = Data(count: CryptoConstants.keyLength)
         
         data.withUnsafeMutableBytes { (rawPointer) -> Void in
             guard let bytes = rawPointer.bindMemory(to: UInt8.self).baseAddress else { return }

@@ -21,7 +21,7 @@ public struct KeyPair {
     public let privateKey: PrivateKey
 }
 
-public enum WavesCryptoConstants {
+public enum CryptoConstants {
     public static let publicKeyLength: Int = 32
     public static let privateKeyLength: Int = 32
     public static let signatureLength: Int = 64
@@ -41,8 +41,6 @@ public enum VersionBytes: String {
     case testnetPublic = "043587cf"
     case testnetPrivate = "04358394"
 }
-
-
 
 public protocol CryptoUtilProtocol {
 
@@ -175,20 +173,20 @@ public protocol CryptoUtilProtocol {
     func verifyAddress(address: Address, chainId: UInt8?, publicKey: PublicKey?) -> Bool
 }
  
-public class WavesUtil: CryptoUtilProtocol {
+public class CryptoUtil: CryptoUtilProtocol {
     
     public init() {}
     
-    public static let shared: WavesUtil  = WavesUtil()
+    public static let shared: CryptoUtil  = CryptoUtil()
 
     public func address(publicKey: PublicKey, chainId: UInt8?) -> Address? {
         
         guard let publicKeyDecode = base58decode(input: publicKey) else { return nil }
         
         let bytes = secureHash(publicKeyDecode)
-        let publicKeyHash = Array(bytes[0..<WavesCryptoConstants.hashLength])
+        let publicKeyHash = Array(bytes[0..<CryptoConstants.hashLength])
         
-        let withoutChecksum: Bytes = [WavesCryptoConstants.addressVersion, UInt8(chainId ?? 0)] + publicKeyHash
+        let withoutChecksum: Bytes = [CryptoConstants.addressVersion, UInt8(chainId ?? 0)] + publicKeyHash
         let checksum = calcCheckSum(withoutChecksum)
         
         return base58encode(input: withoutChecksum + checksum)
@@ -226,7 +224,7 @@ public class WavesUtil: CryptoUtilProtocol {
         
         guard let publicKeyDecode = base58decode(input: publicKey) else { return false }
         
-        return publicKeyDecode.count == WavesCryptoConstants.keyLength
+        return publicKeyDecode.count == CryptoConstants.keyLength
     }
 
     public func verifyAddress(address: Address, chainId: UInt8?, publicKey: PublicKey?) -> Bool {
@@ -237,11 +235,11 @@ public class WavesUtil: CryptoUtilProtocol {
         
         guard let bytes = base58decode(input: address) else { return false }
         
-        if bytes.count == WavesCryptoConstants.addressLength
-            && bytes[0] == WavesCryptoConstants.addressVersion
+        if bytes.count == CryptoConstants.addressLength
+            && bytes[0] == CryptoConstants.addressVersion
             && bytes[1] == UInt8(chainId ?? 0) {
-            let checkSum = Array(bytes[bytes.count - WavesCryptoConstants.checksumLength..<bytes.count])
-            let checkSumGenerated = calcCheckSum(Array(bytes[0..<bytes.count - WavesCryptoConstants.checksumLength]))
+            let checkSum = Array(bytes[bytes.count - CryptoConstants.checksumLength..<bytes.count])
+            let checkSumGenerated = calcCheckSum(Array(bytes[0..<bytes.count - CryptoConstants.checksumLength]))
             
             return checkSum == checkSumGenerated
         }
@@ -252,7 +250,7 @@ public class WavesUtil: CryptoUtilProtocol {
 
 // MARK: - Methods are creating keys
 
-extension WavesUtil {
+extension CryptoUtil {
     
     public func keyPair(seed: Seed) -> KeyPair? {
         
@@ -299,15 +297,23 @@ extension WavesUtil {
     }
     
     public func getRootKey(bip39: String) -> String? {
-        return Web3Crypto.getHmac(bip39: bip39)
+        return Web3Crypto.getRootKey(bip39: bip39)
     }
     
-    public func getXprv(seed: Seed, passphrase: String, version: VersionBytes = .mainnetPrivate) -> String? {
-        return Web3Crypto.getXprv(seed: seed, passphrase: passphrase, version: version)
+    public func getB32Root(seed: Seed, passphrase: String, version: VersionBytes = .mainnetPrivate) -> String? {
+        return Web3Crypto.getB32Root(seed: seed, passphrase: passphrase, version: version)
     }
     
-    public func getXprv(rootKey: String) -> String? {
-        return Web3Crypto.getXprv(rootKey: rootKey)
+    public func getB32Root(rootKey: String, version: VersionBytes = .mainnetPrivate) -> String? {
+        return Web3Crypto.getB32Root(rootKey: rootKey, version: version)
+    }
+    
+    public func getXprv(seed: Seed, passphrase: String) -> String? {
+        return Web3Crypto.getXpub(seed: seed, passphrase: passphrase)
+    }
+    
+    public func getXprv(xPrv: String) -> String? {
+        return Web3Crypto.getXpub(xPrv: xPrv)
     }
     
     public func getXpub(seed: Seed, passphrase: String) -> String? {
@@ -322,7 +328,7 @@ extension WavesUtil {
 
 // MARK: - Methods Hash
 
-extension WavesUtil {
+extension CryptoUtil {
     
     public func blake2b256(input: Bytes) -> Bytes {
         CryptoFx.blake2b256(input: input)
@@ -339,7 +345,7 @@ extension WavesUtil {
 
 // MARK: - Method for encode/decode base58/64
 
-extension WavesUtil {
+extension CryptoUtil {
     
     public func base58encode(input: Bytes) -> String? {
         
@@ -383,7 +389,7 @@ extension WavesUtil {
 
 // MARK: - Hash for seed
 
-private extension WavesUtil {
+private extension CryptoUtil {
     
     
     func secureHash(_ input: Bytes) -> Bytes {
@@ -399,14 +405,14 @@ private extension WavesUtil {
     }
     
     func calcCheckSum(_ withoutChecksum: Bytes) -> Bytes {
-        return Array(secureHash(withoutChecksum)[0..<WavesCryptoConstants.checksumLength])
+        return Array(secureHash(withoutChecksum)[0..<CryptoConstants.checksumLength])
     }
 
 }
 
 // MARK: - Generate Phrase
 
-private extension WavesUtil {
+private extension CryptoUtil {
     
     private func randomBytes(_ length: Int) -> Bytes {
         
