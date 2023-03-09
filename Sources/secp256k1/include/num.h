@@ -9,13 +9,7 @@
 
 #ifndef USE_NUM_NONE
 
-#include "../../secp256k1-config.h"
-
-#if defined(USE_NUM_GMP)
-#include "num_gmp.h"
-#else
-#error "Please select num implementation"
-#endif
+#include "secp256k1-config.h"
 
 /** Copy a number. */
 static void secp256k1_num_copy(secp256k1_num *r, const secp256k1_num *a);

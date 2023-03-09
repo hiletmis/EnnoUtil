@@ -24,4 +24,9 @@ final class WavesUtilTests: XCTestCase {
     func testRootKey() {
         XCTAssertEqual(CryptoUtil.shared.getB32Root(seed: WavesUtilTests.seed, passphrase: "", version: VersionBytes.mainnetPrivate), "xprv9s21ZrQH143K3G3gd4fbajvM6CoU7aL1Qk4H8tRkR5g6M9NqUmbvCeoWo23NtnHRdwaa3LySYiBbB48TbrYYnNDBc3AAmpJndeCQdeMxFbz")
     }
+    
+    func testSecp256k1_ecdsa_recover() {
+        
+        
+    }
 }
