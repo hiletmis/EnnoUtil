@@ -16,12 +16,12 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
-        .target( name: "EnnoUtil", dependencies: ["Crpytoworks", "Keccak", "Curve25519", "Blake2", "Ed25519", "secp256k1"]),
+        .target( name: "EnnoUtil", dependencies: ["Crpytoworks", "Keccak", "Curve25519", "Blake2", "Ed25519", "secp256k1Private"]),
         .target( name: "Crpytoworks", dependencies: []),
         .target( name: "Keccak", dependencies: []),
         .target( name: "Ed25519", dependencies: ["Curve25519"]),
         .target( name: "Curve25519", dependencies: []),
-        .target( name: "secp256k1", dependencies: []),
+        .target( name: "secp256k1Private", dependencies: []),
         .target( name: "Blake2", dependencies: []),
         .testTarget( name: "EnnoUtilTests", dependencies: ["EnnoUtil"]),
     ]
