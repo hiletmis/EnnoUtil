@@ -5,13 +5,18 @@
 
 #define LIBSECP256K1_CONFIG_H
 
-#undef USE_BASIC_CONFIG
-
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* Define this symbol to compile out all VERIFY code */
 /* #undef COVERAGE */
+#undef USE_BASIC_CONFIG
+
+/* Define this symbol if __builtin_expect is available */
+#define HAVE_BUILTIN_EXPECT 1
+
+/* Set window size for ecmult precomputation */
+#define ECMULT_WINDOW_SIZE 15
 
 /* Define this symbol to enable the ECDH module */
 #define ENABLE_MODULE_ECDH 1
@@ -21,9 +26,6 @@
 
 /* Define this symbol if OpenSSL EC functions are available */
 /* #undef ENABLE_OPENSSL_TESTS */
-
-/* Define this symbol if __builtin_expect is available */
-#define HAVE_BUILTIN_EXPECT 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -35,7 +37,7 @@
 /* #define HAVE_LIBCRYPTO 1 */
 
 /* Define this symbol if libgmp is installed */
-/* #define HAVE_LIBGMP 1 */
+/* #undef HAVE_LIBGMP */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
@@ -61,11 +63,8 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
-/* Define to 1 if the system has the type `__int128'. */
-/* #define HAVE___INT128 1 */
-
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
-/* #define LT_OBJDIR ".libs/" */
+#define LT_OBJDIR ".libs/"
 
 /* Name of package */
 #define PACKAGE "libsecp256k1"
@@ -92,7 +91,7 @@
 #define STDC_HEADERS 1
 
 /* Define this symbol to enable x86_64 assembly optimizations */
-/* #define USE_ASM_X86_64 1 */
+/* #undef USE_ASM_X86_64 */
 
 /* Define this symbol to use a statically generated ecmult table */
 #define USE_ECMULT_STATIC_PRECOMPUTATION 1
@@ -101,61 +100,33 @@
 /* #undef USE_ENDOMORPHISM */
 
 /* Define this symbol if an external (non-inline) assembly implementation is
-   used */
+ used */
 /* #undef USE_EXTERNAL_ASM */
 
-/* Define this symbol to use the FIELD_10X26 implementation */
-/* #undef USE_FIELD_10X26 */
-
-/* Define this symbol to use the FIELD_5X52 implementation */
-/* #define USE_FIELD_5X52 1 */
+/* Define this symbol if an external implementation of the default callbacks
+ is used */
+/* #undef USE_EXTERNAL_DEFAULT_CALLBACKS */
 
 /* Define this symbol to use the native field inverse implementation */
-/* #undef USE_FIELD_INV_BUILTIN */
+#define USE_FIELD_INV_BUILTIN 1
 
 /* Define this symbol to use the num-based field inverse implementation */
-/* #define USE_FIELD_INV_NUM 1 */
+/* #undef USE_FIELD_INV_NUM */
 
 /* Define this symbol to use the gmp implementation for num */
-/* #define USE_NUM_GMP 1 */
+/* #undef USE_NUM_GMP */
 
 /* Define this symbol to use no num implementation */
-/* #undef USE_NUM_NONE */
-
-/* Define this symbol to use the 4x64 scalar implementation */
-/* #define USE_SCALAR_4X64 1 */
-
-/* Define this symbol to use the 8x32 scalar implementation */
-/* #undef USE_SCALAR_8X32 */
+#define USE_NUM_NONE 1
 
 /* Define this symbol to use the native scalar inverse implementation */
-/* #undef USE_SCALAR_INV_BUILTIN */
+#define USE_SCALAR_INV_BUILTIN 1
 
 /* Define this symbol to use the num-based scalar inverse implementation */
-/* #define USE_SCALAR_INV_NUM 1 */
+/* #undef USE_SCALAR_INV_NUM */
 
 /* Version number of package */
 #define VERSION "0.1"
-
-/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
-
-// #if defined AC_APPLE_UNIVERSAL_BUILD
-// # if defined __BIG_ENDIAN__
-// #  define WORDS_BIGENDIAN 1
-// # endif
-// #else
-// # ifndef WORDS_BIGENDIAN
-// /* #  undef WORDS_BIGENDIAN */
-// # endif
-// #endif
-
-/* Extra configuration */
-
-#define USE_NUM_NONE 1
-#define USE_FIELD_INV_BUILTIN 1
-#define USE_SCALAR_INV_BUILTIN 1
-#define ENABLE_MODULE_RECOVERY 1
 
 #ifdef __LP64__
 #define HAVE___INT128 1
