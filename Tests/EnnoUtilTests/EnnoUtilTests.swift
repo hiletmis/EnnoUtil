@@ -1,5 +1,5 @@
 import XCTest
-@testable import WavesUtil
+@testable import EnnoUtil
 
 final class WavesUtilTests: XCTestCase {
     
