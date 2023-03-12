@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Crpytoworks
+import B58
 
 public class Base58Encoder {
     public class func encode(_ input: [UInt8]) -> String {

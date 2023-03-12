@@ -7,7 +7,8 @@
 
 import Foundation
 import CommonCrypto
-import Crpytoworks
+import B58
+import Web3Util
 
 public class Web3Crypto {
     
@@ -50,21 +51,48 @@ public class Web3Crypto {
         return nil
     }
     
-    public class func getHmac(bip39: String, key: String) -> String? {
-        return bip39.hmac(algorithm: .SHA512, key: key)
+    public class func getHmac(val: String, key: String) -> String? {
+        return val.hmac(algorithm: .SHA512, key: key)
     }
     
     public class func getRootKey(seed: Seed, passphrase: String) -> String? {
         if let bip39 = getBip39Seed(seed: seed, passphrase: passphrase) {
-            return getHmac(bip39: bip39, key: "Bitcoin seed")
+            return getHmac(val: bip39, key: "Bitcoin seed")
         }
         return nil
     }
     
     public class func getRootKey(bip39: String) -> String? {
-        return getHmac(bip39: bip39, key: "Bitcoin seed")
+        return getHmac(val: bip39, key: "Bitcoin seed")
     }
     
+    public class func getBip32Key(seed: Seed) -> BIP32KeyPair {
+        let binarySeed = Mnemonic.toBinarySeed(mnemonicPhrase: seed)
+        return BIP32KeyPair(fromSeed: binarySeed)
+    }
+    
+    public class func getFingerprint(seed: Seed) -> [UInt8]? {
+        let keyPair = getBip32Key(seed: seed)
+        
+        if let privKey = keyPair.privateKey {
+            return fingerprintFromPrivKey(privKey: privKey)
+        }
+        
+        return nil
+    }
+    
+    public class func Key(privKey: String, compressed: Bool = false) -> String {
+        Web3Util.Key.getPublicFromPrivateKey(privKey: privKey.hexToBytes(), compressed: compressed)
+    }
+    
+    public class func Address(publicKey: String) -> String {
+        Web3Util.Key.getAddressFromPublicKey(publicKey: publicKey.hexToBytes())
+    }
+    
+    public class func Address(privateKey: String) -> String {
+        Web3Util.Key.getAddressFromPrivateKey(privKey: privateKey.hexToBytes())
+    }
+
     private class func calcRootKey(rootKey: String, version: VersionBytes) -> String {
         let L = String(rootKey.prefix(64)).hexToBytes()
         let R = String(rootKey.suffix(64)).hexToBytes()
@@ -80,6 +108,48 @@ public class Web3Crypto {
         let checksum = CryptoFx.sha256(input: CryptoFx.sha256(input: allParts)).prefix(4)
 
         return Base58Encoder.encode(allParts + checksum)
+    }
+    
+    public class func fingerprintFromPrivKey(privKey: [UInt8]) -> [UInt8] {
+        let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: true)
+        let identifier = CryptoFx.ripemd160(input: CryptoFx.sha256(input: publicKey.hexToBytes()))
+        return Data(identifier).prefix(4).bytes
+    }
+    
+    public class func deriveExtPrivateKey(key: BIP32KeyPair, childNumber: Int) -> ([UInt8]) {
+        var dat: [UInt8] = []
+                
+        guard let privKey = key.privateKey else { return [] }
+        if childNumber >= Int(truncating: pow(2, 31) as NSNumber) {
+            dat = [0] + privKey.prefix(32)
+        } else {
+            dat = key.publicKey
+        }
+        
+        dat += byteArray(from: childNumber).suffix(4)
+        
+        if let chainCode = key.chainCode {
+            
+            if let hmac = HashMAC.getHMAC512(data: dat, key: chainCode) {
+                let L = String(hmac.toHexString().prefix(64))
+                let R = String(hmac.toHexString().suffix(64))
+                
+                let child = HexUtil.addHex(a: L.hexToBytes(), b: privKey)
+                
+                print(L,R, child.toHexString())
+            }
+        }
+        
+        //child_private_key = (L_as_int + private_key) % SECP256k1_ORD
+        //child_chain_code = R
+
+        //return (child_private_key, child_chain_code)
+        
+        return (dat)
+    }
+
+    private class func byteArray<T>(from value: T) -> [UInt8] where T: FixedWidthInteger {
+        withUnsafeBytes(of: value.bigEndian, Array.init)
     }
     
     private class func pbkdf2(password: String, saltData: String, keyByteCount: Int, prf: CCPseudoRandomAlgorithm, rounds: Int) -> Data? {

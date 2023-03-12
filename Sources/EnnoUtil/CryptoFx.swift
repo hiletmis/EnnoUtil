@@ -46,4 +46,8 @@ class CryptoFx {
         return Array(digest[0..<len])
     }
     
+    public class func ripemd160(input: Bytes) -> Bytes {
+        return RIPEMD160.hash(message: Data(input)).bytes
+    }
+    
 }

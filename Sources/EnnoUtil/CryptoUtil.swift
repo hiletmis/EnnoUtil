@@ -1,6 +1,6 @@
 
 import Foundation 
-import Crpytoworks
+import B58
 import Curve25519
 import Ed25519
 

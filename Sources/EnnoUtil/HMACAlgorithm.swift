@@ -53,16 +53,21 @@ extension String {
     }
     
     func hexToBytes() -> [UInt8] {
-        let length = self.count
+        var hex = self
+        hex = hex.replacingOccurrences(of: "0x", with: "")
+
+        var length = hex.count
+
         if length & 1 != 0 {
-            return []
+            hex = "0" + hex
+            length += 1
         }
         var bytes = [UInt8]()
         bytes.reserveCapacity(length/2)
-        var index = self.startIndex
+        var index = hex.startIndex
         for _ in 0..<length/2 {
-            let nextIndex = self.index(index, offsetBy: 2)
-            if let b = UInt8(self[index..<nextIndex], radix: 16) {
+            let nextIndex = hex.index(index, offsetBy: 2)
+            if let b = UInt8(hex[index..<nextIndex], radix: 16) {
                 bytes.append(b)
             } else {
                 return []
