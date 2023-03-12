@@ -12,13 +12,20 @@ public typealias PrivateKey = String
 public typealias Seed = String
 public typealias Address = String
 
-public typealias EthereumAddress = String
-public typealias EthereumPrivateKey = String
-public typealias EthereumPublicKey = String
+public typealias Web3Address = String
+public typealias Web3PrivateKey = String
+public typealias Web3PublicKey = String
+public typealias Web3Account = Account
 
 public struct KeyPair {
     public let publicKey: PublicKey
     public let privateKey: PrivateKey
+}
+
+public struct Account {
+    public let address: Web3Address
+    public let publicKey: Web3PublicKey
+    public let privateKey: Web3PrivateKey
 }
 
 public enum CryptoConstants {
@@ -138,6 +145,15 @@ public protocol CryptoUtilProtocol {
      - Returns: a new generated Waves address as String from the seed-phrase
      */
     func address(seed: Seed, chainId: UInt8?) -> Address?
+    /**
+     - Returns: a new generated Web3 address as String from the seed-phrase
+     */
+    func web3address(seed: Seed, path: String) -> Web3Address?
+    
+    /**
+     - Returns: a new generated Web3 account as object from the seed-phrase
+     */
+    func web3Account(seed: Seed, path: String) -> Web3Account?
 
     /**
      - Parameter: privateKey is a key to an address that gives access
@@ -197,6 +213,17 @@ public class CryptoUtil: CryptoUtilProtocol {
         guard let key = publicKey(seed: seed) else { return nil }
         
         return address(publicKey: key, chainId: chainId)
+    }
+     
+    public func web3address(seed: Seed, path: String) -> Web3Address? {
+        let keypair = Web3Crypto.getBip32Key(seed: seed)
+        guard let address = Web3Crypto.deriveAddress(path: path, key: keypair) else { return nil }
+        return "0x" + address.toHexString()
+    }
+    
+    public func web3Account(seed: Seed, path: String) -> Web3Account? {
+        let keypair = Web3Crypto.getBip32Key(seed: seed)
+        return  Web3Crypto.Account(path: path, key: keypair)
     }
 
     public func signBytes(bytes: Bytes, privateKey: PrivateKey) -> Bytes? {

@@ -4,6 +4,7 @@ import XCTest
 final class EnnoUtilTests: XCTestCase {
     
     private static let seed = "denial adult elevator below success birth sheriff front acid chef debate start"
+    private static let path = "m/44'/60'/0'/0/0"
     
     func testExample() throws {
         // This is an example of a functional test case.
@@ -17,6 +18,27 @@ final class EnnoUtilTests: XCTestCase {
     
    func testFingerPrint() {
        XCTAssertEqual(Web3Crypto.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
+   }
+    
+    func testWeb3Account() {
+        let seed = EnnoUtilTests.seed
+        let path = EnnoUtilTests.path
+        
+        let address = "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".lowercased()
+        let pubKey = "0x0469de4780436611afed73aa8a01b504dc3b23dbaee7da635f74e9677aa8552de029a89a135bcfee832ee3ff2d51fff3b6db5dac247b05cb8f8e871e6694f0a72d".lowercased()
+        let privKey = "0xa912f04788a435a4c01ef7442809af626f9670426e2d1367421c34438af9b7a6".lowercased()
+
+        let account = CryptoUtil.shared.web3Account(seed: seed, path: path)
+        
+        let isAddress = account?.address == address
+        let isPubKey = account?.publicKey == pubKey
+        let isPrivKry = account?.privateKey == privKey
+        
+        XCTAssertTrue(isAddress && isPubKey && isPrivKry)
+    }
+    
+   func testGetWeb3Address() {
+       XCTAssertEqual(CryptoUtil.shared.web3address(seed: EnnoUtilTests.seed, path: EnnoUtilTests.path)?.lowercased(), "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".lowercased())
    }
     
    func testExtPriv() {

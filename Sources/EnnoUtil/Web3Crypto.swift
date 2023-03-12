@@ -33,8 +33,27 @@ public class Web3Crypto {
         return nil
     }
     
+    public class func Account(path: String, key: BIP32KeyPair) -> Web3Account? {
+        if let extendedPrivateKey = deriveExtPrivKey(path: path, key: key) {
+            let privKey = Array(extendedPrivateKey[46...77])
+            let pubKey = PublicKey(privKey: privKey)
+            let address = Address(privateKey: privKey)
+            
+            return Web3Account.init(address: "0x" + address,
+                                    publicKey: "0x" + pubKey,
+                                    privateKey: "0x" + privKey.toHexString())
+        }
+        
+        return nil
+    }
+    
+    
     public class func PublicKey(privKey: String, compressed: Bool = false) -> String {
-        Web3Util.Key.getPublicFromPrivateKey(privKey: privKey.hexToBytes(), compressed: compressed)
+        PublicKey(privKey: privKey.hexToBytes(), compressed: compressed)
+    }
+    
+    public class func PublicKey(privKey: [UInt8], compressed: Bool = false) -> String {
+        Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: compressed)
     }
     
     public class func Address(publicKey: String) -> String {
@@ -42,7 +61,7 @@ public class Web3Crypto {
     }
     
     public class func Address(privateKey: String) -> String {
-        Web3Util.Key.getAddressFromPrivateKey(privKey: privateKey.hexToBytes())
+        Address(privateKey: privateKey.hexToBytes())
     }
     
     public class func Address(privateKey: [UInt8]) -> String {
