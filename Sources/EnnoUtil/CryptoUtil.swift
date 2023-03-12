@@ -288,42 +288,6 @@ extension CryptoUtil {
         return generatePhrase()
     }
     
-    public func getBip39Seed(seed: Seed, passphrase: String) -> String? {
-        return Web3Crypto.getBip39Seed(seed: seed, passphrase: passphrase)
-    }
-    
-    public func getRootKey(seed: Seed, passphrase: String) -> String? {
-        return Web3Crypto.getRootKey(seed: seed, passphrase: passphrase)
-    }
-    
-    public func getRootKey(bip39: String) -> String? {
-        return Web3Crypto.getRootKey(bip39: bip39)
-    }
-    
-    public func getB32Root(seed: Seed, passphrase: String, version: VersionBytes = .mainnetPrivate) -> String? {
-        return Web3Crypto.getB32Root(seed: seed, passphrase: passphrase, version: version)
-    }
-    
-    public func getB32Root(rootKey: String, version: VersionBytes = .mainnetPrivate) -> String? {
-        return Web3Crypto.getB32Root(rootKey: rootKey, version: version)
-    }
-    
-    public func getXprv(seed: Seed, passphrase: String) -> String? {
-        return Web3Crypto.getXpub(seed: seed, passphrase: passphrase)
-    }
-    
-    public func getXprv(xPrv: String) -> String? {
-        return Web3Crypto.getXpub(xPrv: xPrv)
-    }
-    
-    public func getXpub(seed: Seed, passphrase: String) -> String? {
-        return Web3Crypto.getXpub(seed: seed, passphrase: passphrase)
-    }
-    
-    public func getXpub(xPrv: String) -> String? {
-        return Web3Crypto.getXpub(xPrv: xPrv)
-    }
-    
 }
 
 // MARK: - Methods Hash

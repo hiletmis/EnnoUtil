@@ -14,60 +14,6 @@ public class Web3Crypto {
     
     private static let SECP256k1_ORD = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
 
-    public class func getB32Root(seed: Seed, passphrase: String, version: VersionBytes) -> String? {
-        if let rootKey = getRootKey(seed: seed, passphrase: passphrase) {
-            return calcRootKey(rootKey: rootKey, version: version)
-        }
-        return nil
-    }
-    
-    public class func getB32Root(rootKey: String, version: VersionBytes) -> String? {
-        return calcRootKey(rootKey: rootKey, version: version)
-    }
-    
-    public class func getXprv(seed: Seed, passphrase: String) -> String? {
-        return nil
-    }
-    
-    public class func getXprv(xPrv: String) -> String? {
-        return nil
-    }
-    
-    public class func getXpub(seed: Seed, passphrase: String) -> String? {
-        return nil
-    }
-    
-    public class func getXpub(xPrv: String) -> String? {
-        return nil
-    }
-    
-    public class func getBip39Seed(seed: Seed, passphrase: String) -> String? {
-        if let pbkdf2 = pbkdf2(password: seed,
-                               saltData: "mnemonic" + passphrase,
-                               keyByteCount: 64,
-                               prf: CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA512),
-                               rounds: 2048) {
-            
-            return pbkdf2.hexEncodedString()
-        }
-        return nil
-    }
-    
-    public class func getHmac(val: String, key: String) -> String? {
-        return val.hmac(algorithm: .SHA512, key: key)
-    }
-    
-    public class func getRootKey(seed: Seed, passphrase: String) -> String? {
-        if let bip39 = getBip39Seed(seed: seed, passphrase: passphrase) {
-            return getHmac(val: bip39, key: "Bitcoin seed")
-        }
-        return nil
-    }
-    
-    public class func getRootKey(bip39: String) -> String? {
-        return getHmac(val: bip39, key: "Bitcoin seed")
-    }
-    
     public class func getBip32Key(seed: Seed) -> BIP32KeyPair {
         let binarySeed = Mnemonic.toBinarySeed(mnemonicPhrase: seed)
         return BIP32KeyPair(fromSeed: binarySeed)
@@ -87,7 +33,7 @@ public class Web3Crypto {
         return nil
     }
     
-    public class func Key(privKey: String, compressed: Bool = false) -> String {
+    public class func PublicKey(privKey: String, compressed: Bool = false) -> String {
         Web3Util.Key.getPublicFromPrivateKey(privKey: privKey.hexToBytes(), compressed: compressed)
     }
     
@@ -103,23 +49,6 @@ public class Web3Crypto {
         Web3Util.Key.getAddressFromPrivateKey(privKey: privateKey)
     }
 
-    private class func calcRootKey(rootKey: String, version: VersionBytes) -> String {
-        let L = String(rootKey.prefix(64)).hexToBytes()
-        let R = String(rootKey.suffix(64)).hexToBytes()
-        
-        let depthKey:[UInt8] = [0]
-        let parentFingerprint:[UInt8] = [0,0,0,0]
-        let childNumberBytes:[UInt8] = [0,0,0,0]
-        let keyBytes:[UInt8] = [0] + L
-        
-        let versionBytes = version.rawValue.hexToBytes()
-        let allParts:[UInt8] = versionBytes + depthKey + parentFingerprint + childNumberBytes + R + keyBytes
-                    
-        let checksum = CryptoFx.sha256(input: CryptoFx.sha256(input: allParts)).prefix(4)
-
-        return Base58Encoder.encode(allParts + checksum)
-    }
-    
     public class func deriveExtPrivKey(path: String, key: BIP32KeyPair) -> [UInt8]? {
         
         if !testPath(path: path) {
@@ -157,7 +86,7 @@ public class Web3Crypto {
             
             let key = BIP32KeyPair.init(privateKey: privateKey, chainCode: chainCode, publicKey: nil)
             
-            if let (privKey, derivedChainCode) = deriveExtPrivateKey(key: key, childNumber: childNumber) {
+            if let (privKey, derivedChainCode) = derivePath(key: key, childNumber: childNumber) {
                 privateKey = privKey
                 chainCode = derivedChainCode
             } else {
@@ -194,7 +123,7 @@ public class Web3Crypto {
         return Data(identifier).prefix(4).bytes
     }
     
-    public class func deriveExtPrivateKey(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
+    public class func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
         var dat: [UInt8] = []
                 
         guard let privKey = key.privateKey else { return nil }
@@ -233,28 +162,4 @@ public class Web3Crypto {
         return regex.firstMatch(in: path, options: [], range: range) != nil
     }
     
-    private class func pbkdf2(password: String, saltData: String, keyByteCount: Int, prf: CCPseudoRandomAlgorithm, rounds: Int) -> Data? {
-        guard let passwordData = password.data(using: .utf8) else { return nil }
-        guard let saltData = saltData.data(using: .utf8) else { return nil }
-        var derivedKeyData = Data(repeating: 0, count: keyByteCount)
-        let derivedCount = derivedKeyData.count
-        let derivationStatus: Int32 = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes in
-            let keyBuffer: UnsafeMutablePointer<UInt8> =
-                derivedKeyBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
-            return saltData.withUnsafeBytes { saltBytes -> Int32 in
-                let saltBuffer: UnsafePointer<UInt8> = saltBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
-                return CCKeyDerivationPBKDF(
-                    CCPBKDFAlgorithm(kCCPBKDF2),
-                    password,
-                    passwordData.count,
-                    saltBuffer,
-                    saltData.count,
-                    prf,
-                    UInt32(rounds),
-                    keyBuffer,
-                    derivedCount)
-            }
-        }
-        return derivationStatus == kCCSuccess ? derivedKeyData : nil
-    }
 }

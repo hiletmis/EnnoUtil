@@ -15,16 +15,6 @@ final class EnnoUtilTests: XCTestCase {
         XCTAssertEqual(Base58Encoder.validate("39wFF1"), true)
     }
     
-    func testBip39Seed() {
-        XCTAssertEqual(CryptoUtil.shared.getBip39Seed(seed: EnnoUtilTests.seed, passphrase: ""), "25319dba10231984b2d243b6915ab9d2c1adb96e30fdd5f8ee15c79758e939984ce2cda3a8dc35bcec4dfd9abd129a6e95c809d01225651743919e17d1e932c8")
-        
-        XCTAssertEqual(CryptoUtil.shared.getRootKey(seed: EnnoUtilTests.seed, passphrase: ""), "ad58258c043e913fcbdf207dfdbf95ffd317192b2cffad0063eb864b7ce31a6e78af8520869c5c349d390bdb3f40387299e88839c4cce5d4aa9a082835aa34fb")
-    }
-    
-    func testRootKey() {
-        XCTAssertEqual(CryptoUtil.shared.getB32Root(seed: EnnoUtilTests.seed, passphrase: "", version: VersionBytes.mainnetPrivate), "xprv9s21ZrQH143K3G3gd4fbajvM6CoU7aL1Qk4H8tRkR5g6M9NqUmbvCeoWo23NtnHRdwaa3LySYiBbB48TbrYYnNDBc3AAmpJndeCQdeMxFbz")
-    }
-    
    func testFingerPrint() {
        XCTAssertEqual(Web3Crypto.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
    }
@@ -33,7 +23,7 @@ final class EnnoUtilTests: XCTestCase {
        let priv = "0xf90869e33b0c5faafa38f163a5d67a40bda0778019d6c153e76b7c69d5a52222".hexToBytes()
        let chainCode = "0x28d27929c23a1cb9e1aff347e6ba5f994ac0535f22bc4d229296512588380747".hexToBytes()
        
-       let extPriv = Web3Crypto.deriveExtPrivateKey(key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed), childNumber: 2147483692)! == (priv,chainCode)
+       let extPriv = Web3Crypto.derivePath(key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed), childNumber: 2147483692)! == (priv,chainCode)
        
        XCTAssertTrue(extPriv)
    }
@@ -103,11 +93,11 @@ final class EnnoUtilTests: XCTestCase {
     }
    
     func testPriv2PublicUncompressed() {
-        XCTAssertEqual(Web3Crypto.Key(privKey: "a912f04788a435a4c01ef7442809af626f9670426e2d1367421c34438af9b7a6"), "0469de4780436611afed73aa8a01b504dc3b23dbaee7da635f74e9677aa8552de029a89a135bcfee832ee3ff2d51fff3b6db5dac247b05cb8f8e871e6694f0a72d")
+        XCTAssertEqual(Web3Crypto.PublicKey(privKey: "a912f04788a435a4c01ef7442809af626f9670426e2d1367421c34438af9b7a6"), "0469de4780436611afed73aa8a01b504dc3b23dbaee7da635f74e9677aa8552de029a89a135bcfee832ee3ff2d51fff3b6db5dac247b05cb8f8e871e6694f0a72d")
     }
     
     func testPriv2PublicCompressed() {
-        XCTAssertEqual(Web3Crypto.Key(privKey: "ad58258c043e913fcbdf207dfdbf95ffd317192b2cffad0063eb864b7ce31a6e", compressed: true), "028c5922309fed7cdd144ecd8269ad6aa9a06a3f5dbfafb267f409a0530b850c0d")
+        XCTAssertEqual(Web3Crypto.PublicKey(privKey: "ad58258c043e913fcbdf207dfdbf95ffd317192b2cffad0063eb864b7ce31a6e", compressed: true), "028c5922309fed7cdd144ecd8269ad6aa9a06a3f5dbfafb267f409a0530b850c0d")
     }
     
     func testWeb3Address() {
