@@ -30,9 +30,28 @@ final class EnnoUtilTests: XCTestCase {
    }
     
    func testExtPriv() {
-       XCTAssertEqual(Web3Crypto.deriveExtPrivateKey(key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed), childNumber: 2147483692), ([]))
+       let priv = "0xf90869e33b0c5faafa38f163a5d67a40bda0778019d6c153e76b7c69d5a52222".hexToBytes()
+       let chainCode = "0x28d27929c23a1cb9e1aff347e6ba5f994ac0535f22bc4d229296512588380747".hexToBytes()
+       
+       let extPriv = Web3Crypto.deriveExtPrivateKey(key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed), childNumber: 2147483692)! == (priv,chainCode)
+       
+       XCTAssertTrue(extPriv)
    }
     
+    func testDerive() {
+        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44/60/0/0/0", key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed)), "0x92F7Be306AbF6170A5B0990B2f98Bc465Fa1925B".hexToBytes())
+        
+        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "endorse kite retreat stay thank shed struggle jaguar popular demise grid opera someone record basket laptop school remind jump clump mystery dirt chimney about")), "0xC3b86c8AaBF8208C339A63B6fb7402537089085e".hexToBytes())
+        
+        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed)), "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".hexToBytes())
+        
+        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "distance where slush wave baby vapor blush kiwi canoe decrease sheriff seed")), "0x9d53Fa5481c30663BcBFeB725fcC5268a8D664ad".hexToBytes())
+        
+        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60k'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "eyebrow myth make situate keen verify evolve odor surprise basic capable silk kid critic filter congress hand deer push act weather patient swap follow")), nil)
+        
+        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "eyebrow myth make situate keen verify evolve odor surprise basic capable silk kid critic filter congress hand deer push act weather patient swap follow")), "0x2A2EA0930232966f5236A7C64a1BC8c0B041a9A0".hexToBytes())
+
+    }
     func testAddBigInt() {
         XCTAssertEqual(HexUtil.addHex(a: "3f", b: "aaef"), "ab2e".hexToBytes())
         XCTAssertEqual(HexUtil.addHex(a: "da3f", b: "aaef"), "01852e".hexToBytes())
@@ -92,6 +111,8 @@ final class EnnoUtilTests: XCTestCase {
     }
     
     func testWeb3Address() {
+        XCTAssertEqual(Web3Crypto.Address(privateKey: "dcd0028e22ded7a49dc7a0f5fe586301909896cb9d1039a3d59d299dec00f090").lowercased(), "514E93bFc5a3fE50e1C9C3A082D06975da73F234".lowercased())
+        
         XCTAssertEqual(Web3Crypto.Address(publicKey: "04e68acfc0253a10620dff706b0a1b1f1f5833ea3beb3bde2250d5f271f3563606672ebc45e0b7ea2e816ecb70ca03137b1c9476eec63d4632e990020b7b6fba39").lowercased(), "90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".lowercased())
         
         XCTAssertEqual(Web3Crypto.Address(privateKey: "638a8089747e8d14d4cdcca0f512471741c2993e5e85c51a496f0d063e43631e").lowercased(), "9dE86784F52894980bD7a1789e0931aFF3Adc9Ce".lowercased())
