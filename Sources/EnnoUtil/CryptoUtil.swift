@@ -15,6 +15,7 @@ public typealias Address = String
 public typealias Web3Address = String
 public typealias Web3PrivateKey = String
 public typealias Web3PublicKey = String
+public typealias Web3ExtPrivateKey = String
 public typealias Web3Account = Account
 
 public struct KeyPair {
@@ -149,11 +150,20 @@ public protocol CryptoUtilProtocol {
      - Returns: a new generated Web3 address as String from the seed-phrase
      */
     func web3address(seed: Seed, path: String) -> Web3Address?
+     /**
+     - Returns: a new generated Web3 address as String from the extended private key.
+     */
+    func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address?
     
     /**
      - Returns: a new generated Web3 account as object from the seed-phrase
      */
     func web3Account(seed: Seed, path: String) -> Web3Account?
+    
+    /**
+     - Returns: a new generated account's external private key from the seed-phrase
+     */
+    func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey?
 
     /**
      - Parameter: privateKey is a key to an address that gives access
@@ -214,16 +224,29 @@ public class CryptoUtil: CryptoUtilProtocol {
         
         return address(publicKey: key, chainId: chainId)
     }
-     
+    
     public func web3address(seed: Seed, path: String) -> Web3Address? {
         let keypair = Web3Crypto.getBip32Key(seed: seed)
         guard let address = Web3Crypto.deriveAddress(path: path, key: keypair) else { return nil }
         return "0x" + address.toHexString()
     }
     
+    public func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address? {
+        guard let address = Web3Crypto.deriveAddress(xPriv: xPriv, depth: depth, index: index) else { return nil }
+        return "0x" + address.toHexString()
+    }
+    
     public func web3Account(seed: Seed, path: String) -> Web3Account? {
         let keypair = Web3Crypto.getBip32Key(seed: seed)
         return  Web3Crypto.Account(path: path, key: keypair)
+    }
+    
+    public func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey? {
+        let keypair = Web3Crypto.getBip32Key(seed: seed)
+        if let key = Web3Crypto.deriveExtPrivKey(path: path, key: keypair) {
+            return Base58Encoder.encode(key)
+        }
+        return nil
     }
 
     public func signBytes(bytes: Bytes, privateKey: PrivateKey) -> Bytes? {

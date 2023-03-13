@@ -5,17 +5,8 @@ final class EnnoUtilTests: XCTestCase {
     
     private static let seed = "denial adult elevator below success birth sheriff front acid chef debate start"
     private static let path = "m/44'/60'/0'/0/0"
-    
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(Base58Encoder.decode("39wFF1"), [84, 69, 83, 84])
-        XCTAssertEqual(Base58Encoder.decodeToStr("39wFF1"), "TEST")
-        XCTAssertEqual(Base58Encoder.encode([84, 69, 83, 84]), "39wFF1")
-        XCTAssertEqual(Base58Encoder.validate("39wFF1"), true)
-    }
-    
+    private static let accountPath = "m/44'/60'/0'"
+
    func testFingerPrint() {
        XCTAssertEqual(Web3Crypto.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
    }
@@ -37,17 +28,107 @@ final class EnnoUtilTests: XCTestCase {
         XCTAssertTrue(isAddress && isPubKey && isPrivKry)
     }
     
+    func testAccountXprv() {
+
+        let key1 = "xprv9ykwE8ef1StdEYpYNzd7UAu1vmeakgpDSV99uh6f3AZkfM3ZQv1mtATiGnH3APrTy4sLDXXvoBxJYRDBKLUMektKfVkLcDVWkSEWUBfd1rh"
+        let key2 = "xprvA2Lvvd3bSaqeQ7QUHNhyWDMTxPzAoCkbwqMUBGKunxZH8zSgtNaNnsymvHC5LArmV1a8RYWwZASDjhPLEv7QVMSGuo595e7MV1WzAKM293q"
+
+        if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: EnnoUtilTests.accountPath) {
+            XCTAssertEqual(xPrv.lowercased(), key1.lowercased())
+            let xNextDepth = Web3Crypto.deriveExtPrivKey(xPrv: xPrv, depth: 3, index: 0)
+            XCTAssertEqual(Base58Encoder.encode(xNextDepth!).lowercased(), key2.lowercased())
+            
+            let address1 = CryptoUtil.shared.web3address(xPriv: Base58Encoder.encode(xNextDepth!), depth: 4, index: 0)
+            XCTAssertEqual(address1, "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".lowercased())
+            let address2 = CryptoUtil.shared.web3address(xPriv: Base58Encoder.encode(xNextDepth!), depth: 4, index: 1)
+            XCTAssertEqual(address2, "0xA00e35E792f4C573179323A4B1283C91539a8055".lowercased())
+            let address3 = CryptoUtil.shared.web3address(xPriv: Base58Encoder.encode(xNextDepth!), depth: 4, index: 2)
+            XCTAssertEqual(address3, "0x234d29f991d6d402F4fd0f7E1B0512b00B185345".lowercased())
+            let address4 = CryptoUtil.shared.web3address(xPriv: Base58Encoder.encode(xNextDepth!), depth: 4, index: 3)
+            XCTAssertEqual(address4, "0x4B6Cb8d108cEE7fb93Eb373d73AC4AFcdc979595".lowercased())
+            let address5 = CryptoUtil.shared.web3address(xPriv: Base58Encoder.encode(xNextDepth!), depth: 4, index: 4)
+            XCTAssertEqual(address5, "0xd7Ed609F6E3924ba00E9Ed92F8d4ebAD4Eff23c7".lowercased())
+        }
+    }
+    
+    func testP2PKH() {
+        let key = Web3Crypto.p2pkhAddress(
+            privKey: "30fa9a0e4db9bc1773e8a2afd8310e47d5f596965c6bef34468360b32df55b78".hexToBytes(),
+            hrp: "")
+        XCTAssertEqual(key, "1E8FqVzE6Er4XrroBVxxbfjUHx7bE94juJ")
+        let key2 = Web3Crypto.p2pkhAddress(
+            pubKey: "031db82dd04f27ae5ffd90ccbd1474d0657bce8879458767f28bd6c2724743c0d5".hexToBytes(),
+            hrp: "")
+        XCTAssertEqual(key2, "1DA5tQmfYJDKZ7oG1HRMkyS2t5hEn9tMew")
+        let key3 = Web3Crypto.p2pkhAddress(
+            privKey: "0b52b5d35c842a3d5f21d5a2128705740150ea74a68b70d62e28c3cb129e380a".hexToBytes(),
+            hrp: "",
+            compressed: true)
+        XCTAssertEqual(key3, "15yemm2ZPWKzTeu1JLnVWMotp9R2oFVX37")
+    }
+    
+    func testBtcAddress() {
+        let btcPath = "m/44\'/0\'/0\'"
+        if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: btcPath) {
+            let xAccountDepth = Web3Crypto.deriveExtPrivKey(xPrv: xPrv, depth: 3, index: 0)
+
+            let array = [
+                "1EMTwcC2SXBgR1wCK91KP5ge7xMwnizTdr",
+                "1DA5tQmfYJDKZ7oG1HRMkyS2t5hEn9tMew",
+                "15yemm2ZPWKzTeu1JLnVWMotp9R2oFVX37",
+                "12vkAqwe6AF5PYNHB7ADi8MKoy9NTLJcyr",
+                "1KkxzsPF6eGViMnXenm6tPxf99SSA8g6CW",
+                "1CZXZFyb7eqvX7HRRJPN6FB5HzNaexL2tW",
+                "122wBwnVwGMvXYgSxw4UpDe2CE23SwxqJE",
+                "1KnGT4NnJixuDbDZ5zMFyQTJvkzDDrkYi9",
+                "1EV27SH2fK8uVAZsyd8S1gqh1vwoxozGjG",
+                "123ooXUBv5uujvzwmtHHpjhKacBwdzrasa",
+                "1JYLcRKb16bbb7b3sHndsUy2mLZeQogzmt",
+            ]
+            
+            for i in 0..<10 {
+                let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xAccountDepth!), depth: 4, index: i)
+                let privKey:[UInt8] = Array(xAddressDepth![46...77])
+
+                let address = Web3Crypto.p2pkhAddress(privKey: privKey, hrp: "", compressed: true)
+                XCTAssertEqual(address, array[i])
+            }
+        }
+    }
+    
+    func testAvaxAddress() {
+        let avaxPath = "m/44\'/9000\'/0\'"
+        if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: avaxPath) {
+            
+            let xAccountDepth = Web3Crypto.deriveExtPrivKey(xPrv: xPrv, depth: 3, index: 0)
+            
+            let array = [
+                "avax1fukjhvzlrvyu3dhv42yqzhjnrz4kvdm38q8p6x",
+                "avax1nndxw2rh7za7vyd042uq2ftnt4q9deqcsv59zr",
+                "avax12z60caanh7l89tml9yd9398azggvq776ey4h32",
+                "avax12fk0uekw90rttd37fn0tepp7r0qy4zhxaf52v3",
+                "avax1evqyaq0hpsvcvhsqe0egg3h5xnywx4hfp362yq",
+                "avax1vwgl34qxwv4kd4y763evtytrr3ved757azkc5y",
+                "avax1l0cdgnyt2utlhlvcwdwrtz9z4yaqq6m9kmzk8u",
+                "avax1sy6m8y2ut5mxnvw4t0fl4fvrwwts0prh2mzc8x",
+                "avax1p2408ckd7srcju3gmsjcswmg2h6vf53vh0maq9",
+                "avax19gh89phjlaa3hcpvewlmd8hfxx29jc33w7fdrs",
+                "avax1f9nxe332q7f50w970q4vjvrll9mxmmw8vtm6xw",
+            ]
+            
+            for i in 0..<10 {
+                let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xAccountDepth!), depth: 4, index: i)
+                let privKey:[UInt8] = Array(xAddressDepth![46...77])
+
+                let address = Web3Crypto.bech32Address(privKey: privKey, hrp: "avax")
+                XCTAssertEqual(address, array[i])
+            }
+        }
+        
+    }
+    
    func testGetWeb3Address() {
        XCTAssertEqual(CryptoUtil.shared.web3address(seed: EnnoUtilTests.seed, path: EnnoUtilTests.path)?.lowercased(), "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".lowercased())
-   }
-    
-   func testExtPriv() {
-       let priv = "0xf90869e33b0c5faafa38f163a5d67a40bda0778019d6c153e76b7c69d5a52222".hexToBytes()
-       let chainCode = "0x28d27929c23a1cb9e1aff347e6ba5f994ac0535f22bc4d229296512588380747".hexToBytes()
-       
-       let extPriv = Web3Crypto.derivePath(key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed), childNumber: 2147483692)! == (priv,chainCode)
-       
-       XCTAssertTrue(extPriv)
    }
     
     func testDerive() {

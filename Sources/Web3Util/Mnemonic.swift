@@ -32,10 +32,6 @@ public class Mnemonic {
         self.indexes = idx
     }
     
-    public func useBIP39EnglishWordlist() {
-        self.wordList = MnemonicEnglish.words
-    }
-    
     public func toMnemonicPhrase() -> String {
         self.words.joined(separator: " ")
     }

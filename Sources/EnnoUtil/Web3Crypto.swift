@@ -43,7 +43,6 @@ public class Web3Crypto {
                                     publicKey: "0x" + pubKey,
                                     privateKey: "0x" + privKey.toHexString())
         }
-        
         return nil
     }
     
@@ -68,7 +67,17 @@ public class Web3Crypto {
         Web3Util.Key.getAddressFromPrivateKey(privKey: privateKey)
     }
 
-    public class func deriveExtPrivKey(path: String, key: BIP32KeyPair) -> [UInt8]? {
+    public class func deriveExtPrivKey(xPrv: String, depth: Int, index: Int) -> [UInt8]? {
+        let path = "m/\(index)"
+        let key = Base58Encoder.decode(xPrv)
+        let privKey:[UInt8] = Array(key[46...77])
+        let chainCode:[UInt8] = Array(key[13...44])
+
+        let xPriv = BIP32KeyPair.init(privateKey: privKey, chainCode: chainCode, publicKey: nil)
+        return deriveExtPrivKey(path: path, key: xPriv, depth: depth)
+    }
+    
+    public class func deriveExtPrivKey(path: String, key: BIP32KeyPair, depth: Int = 0) -> [UInt8]? {
         
         if !testPath(path: path) {
             return nil
@@ -91,7 +100,7 @@ public class Web3Crypto {
         guard let masterPrivKey = key.privateKey else { return nil }
         guard let masterChainCode = key.chainCode else { return nil }
 
-        var depth = 0
+        var depth = depth
         var parentFingerprint:[UInt8] = []
         var childNumber = 0
         var privateKey = masterPrivKey
@@ -120,29 +129,64 @@ public class Web3Crypto {
         let versionBytes = VersionBytes.mainnetPrivate.rawValue.hexToBytes()
         let allParts:[UInt8] = versionBytes + depthKey + parentFingerprint + childNumberBytes + chainCode + keyBytes
         
-        let checksum = CryptoFx.sha256(input: CryptoFx.sha256(input: allParts)).prefix(4)
-        
-        return allParts + checksum
+        return checksum(datas: allParts)
     }
     
     public class func deriveAddress(path: String, key: BIP32KeyPair) -> [UInt8]? {
-        
         if let extendedPrivateKey = deriveExtPrivKey(path: path, key: key) {
-            let privateKey:[UInt8] = Array(extendedPrivateKey[46...78])
-
-            let address = Address(privateKey: privateKey)
-            return address.hexToBytes()
+            let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
+            return Address(privateKey: privateKey).hexToBytes()
         }
         return nil
     }
     
-    public class func fingerprintFromPrivKey(privKey: [UInt8]) -> [UInt8] {
-        let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: true)
-        let identifier = CryptoFx.ripemd160(input: CryptoFx.sha256(input: publicKey.hexToBytes()))
-        return Data(identifier).prefix(4).bytes
+    public class func deriveAddress(xPriv: Web3ExtPrivateKey, depth:Int, index: Int) -> [UInt8]? {
+        if let extendedPrivateKey = deriveExtPrivKey(xPrv: xPriv, depth: depth, index: index) {
+            let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
+            return Address(privateKey: privateKey).hexToBytes()
+        }
+        return nil
     }
     
-    public class func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
+    private class func checksum(datas: [UInt8]) -> [UInt8] {
+        return datas + CryptoFx.sha256(input: CryptoFx.sha256(input: datas)).prefix(4)
+    }
+    
+    public class func secp256k1Address(privKey: [UInt8]) -> [UInt8] {
+        let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: true)
+        return CryptoFx.ripemd160(input: CryptoFx.sha256(input: publicKey.hexToBytes()))
+    }
+    
+    public class func p2pkhAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
+        let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: compressed)
+        return p2pkhAddress(pubKey: publicKey.hexToBytes(), hrp: hrp)
+    }
+    
+    public class func p2pkhAddress(pubKey: [UInt8], hrp: String) -> String? {
+        let ripesha = [0] + CryptoFx.ripemd160(input: CryptoFx.sha256(input: pubKey))
+        let checksum = checksum(datas: ripesha)
+        print(checksum.toHexString())
+        return Base58Encoder.encode(checksum)
+    }
+    
+    public class func bech32Address(privKey: [UInt8], hrp: String) -> String? {
+        let ripesha = secp256k1Address(privKey: privKey)
+        return bech32Address(ripesha: ripesha, hrp: hrp)
+    }
+    
+    public class func bech32Address(ripesha: [UInt8], hrp: String) -> String? {
+        let bech32 = SegwitAddrCoder()
+        if let recoded = try? bech32.encode(hrp: hrp, program: Data(ripesha)) {
+            return recoded
+        }
+        return nil
+    }
+    
+    private class func fingerprintFromPrivKey(privKey: [UInt8]) -> [UInt8] {
+        return Data(secp256k1Address(privKey: privKey)).prefix(4).bytes
+    }
+    
+    private class func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
         var dat: [UInt8] = []
                 
         guard let privKey = key.privateKey else { return nil }

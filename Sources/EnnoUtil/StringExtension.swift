@@ -42,3 +42,11 @@ extension String {
         return String(hash).lowercased()
     }
 }
+
+
+extension Web3ExtPrivateKey {
+    public func getPrivKey() -> [UInt8] {
+        let privateKey:[UInt8] = Array(Base58Encoder.decode(self)[46...77])
+        return privateKey
+    }
+}

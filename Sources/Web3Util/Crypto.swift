@@ -230,15 +230,5 @@ class Crypto {
      
     func random(count: Int) -> [UInt8] {
         AES.randomIV(count)
-    }
-    
-    func serializeCurvePoint() {
-        let path_numbers = (2147483692, 2147483708, 2147483648, 0, 0)
-        
-    }
-    
-    func curvePointFromInt(key: [UInt8]) {
-        
-    }
-     
+    }     
 }
