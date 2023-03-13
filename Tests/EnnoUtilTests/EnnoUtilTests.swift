@@ -169,7 +169,10 @@ final class EnnoUtilTests: XCTestCase {
             ]
             
             for i in 0..<10 {
-                let address = CryptoUtil.shared.avaxNativeAddress(xPriv: xAccountDepth!, depth: 4, index: i, hrp: "avax")
+                let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xAccountDepth!), depth: 4, index: i)
+                let privKey:[UInt8] = Array(xAddressDepth![46...77])
+
+                let address = Web3Crypto.bech32Address(privKey: privKey, hrp: "avax")
                 XCTAssertEqual(address, array[i])
             }
         }

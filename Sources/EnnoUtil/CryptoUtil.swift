@@ -170,7 +170,11 @@ public protocol CryptoUtilProtocol {
     /**
     - Returns: a new generated Avalanche Native address as String from the extended private key.
     */
-    func avaxNativeAddress(xPriv: [UInt8], depth: Int, index: Int, hrp:String) -> AvalancheNativeAddress?
+    func avaxNativeAddress(xPriv: [UInt8], hrp: String) -> AvalancheNativeAddress?
+    /**
+    - Returns: a new generated Avalanche Native address as String from the hash160(privKey).
+    */
+    func avaxNativeAddress(ripesha: [UInt8], hrp: String) -> AvalancheNativeAddress?
    
     /**
      - Returns: a new generated Web3 account as object from the seed-phrase
@@ -266,12 +270,12 @@ public class CryptoUtil: CryptoUtilProtocol {
         return nil
     }
     
-    public func avaxNativeAddress(xPriv: [UInt8], depth: Int, index: Int, hrp: String) -> AvalancheNativeAddress? {
-        if let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xPriv), depth: depth, index: index) {
-            let privKey:[UInt8] = Array(xAddressDepth[46...77])
-            return Web3Crypto.bech32Address(privKey: privKey, hrp: hrp)
-        }
-        return nil
+    public func avaxNativeAddress(xPriv: [UInt8], hrp: String) -> AvalancheNativeAddress? {
+        return Web3Crypto.bech32Address(privKey: xPriv, hrp: hrp)
+    }
+    
+    public func avaxNativeAddress(ripesha: [UInt8], hrp: String) -> AvalancheNativeAddress? {
+        return Web3Crypto.bech32Address(ripesha: ripesha, hrp: hrp)
     }
     
     public func signBytes(bytes: Bytes, privateKey: PrivateKey) -> Bytes? {

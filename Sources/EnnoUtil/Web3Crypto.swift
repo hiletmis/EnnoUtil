@@ -13,6 +13,7 @@ import Web3Util
 public class Web3Crypto {
     
     private static let SECP256k1_ORD = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+    static let bech32 = SegwitAddrCoder()
 
     public class func getBip32Key(seed: Seed) -> BIP32KeyPair {
         let binarySeed = Mnemonic.toBinarySeed(mnemonicPhrase: seed)
@@ -186,7 +187,6 @@ public class Web3Crypto {
     }
     
     public class func bech32Address(ripesha: [UInt8], hrp: String) -> String? {
-        let bech32 = SegwitAddrCoder()
         if let recoded = try? bech32.encode(hrp: hrp, program: Data(ripesha)) {
             return recoded
         }
