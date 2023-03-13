@@ -18,6 +18,8 @@ public typealias Web3PublicKey = String
 public typealias Web3ExtPrivateKey = String
 public typealias Web3Account = Account
 
+public typealias AvalancheNativeAddress = String
+
 public struct KeyPair {
     public let publicKey: PublicKey
     public let privateKey: PrivateKey
@@ -27,6 +29,17 @@ public struct Account {
     public let address: Web3Address
     public let publicKey: Web3PublicKey
     public let privateKey: Web3PrivateKey
+}
+
+public enum ChainId {
+    public static let ethereum: Int = 60
+    public static let avalanche: Int = 43114
+    public static let avalancheC: Int = 9005
+    public static let avalancheX: Int = 9000
+    public static let solana: Int = 501
+    public static let binance: Int = 56
+    public static let polygon: Int = 137
+    public static let bitcoin: Int = 0
 }
 
 public enum CryptoConstants {
@@ -150,11 +163,15 @@ public protocol CryptoUtilProtocol {
      - Returns: a new generated Web3 address as String from the seed-phrase
      */
     func web3address(seed: Seed, path: String) -> Web3Address?
-     /**
-     - Returns: a new generated Web3 address as String from the extended private key.
-     */
-    func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address?
-    
+    /**
+    - Returns: a new generated Web3 address as String from the extended private key.
+    */
+   func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address?
+    /**
+    - Returns: a new generated Avalanche Native address as String from the extended private key.
+    */
+    func avaxNativeAddress(xPriv: [UInt8], depth: Int, index: Int, hrp:String) -> AvalancheNativeAddress?
+   
     /**
      - Returns: a new generated Web3 account as object from the seed-phrase
      */
@@ -248,7 +265,15 @@ public class CryptoUtil: CryptoUtilProtocol {
         }
         return nil
     }
-
+    
+    public func avaxNativeAddress(xPriv: [UInt8], depth: Int, index: Int, hrp: String) -> AvalancheNativeAddress? {
+        if let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xPriv), depth: depth, index: index) {
+            let privKey:[UInt8] = Array(xAddressDepth[46...77])
+            return Web3Crypto.bech32Address(privKey: privKey, hrp: hrp)
+        }
+        return nil
+    }
+    
     public func signBytes(bytes: Bytes, privateKey: PrivateKey) -> Bytes? {
         
         guard let privateKeyDecode = base58decode(input: privateKey) else { return nil }

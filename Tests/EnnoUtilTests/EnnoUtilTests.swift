@@ -51,6 +51,29 @@ final class EnnoUtilTests: XCTestCase {
         }
     }
     
+    func testP2PSH() {
+        
+        let pubkeys = [
+            "033d146cd81f3cca87ec904028d0da552cc95e70f6535a791c1395fb9c32d25d2a",
+            "03c057aa44caa975b9c04fe0d6e5af7d396382772bfc1c7e0a4f05dac141f30e3a",
+            "0302f39f628ff478988443d1aff1c8ddd2e532ce628a4517caf106787b2b1a955e",
+            "031818cb38cb8c58ce9d93141fb7757f1bd2cb9956a631fcfd0baead1bd24b01d3"
+        ]
+        
+        let addresses = [
+            "3FFxkR6MJVfc91D2vTikdPyWBA9TzSp9ei",
+            "3NGjTMvdFkHkQunmyLUo2oqHSRyoRoxLSZ",
+            "3NA18PGcWLDvr9JzAuLWXA6DyeyQro4pzm",
+            "38HqrD57DcqBqP1bY6Qk9wbEyify4CPRBJ"
+        ]
+        
+        for (index, pubkey) in pubkeys.enumerated() {
+            let key0 = Web3Crypto.p2pshAddress( pubKey: pubkey.hexToBytes(), hrp: "")
+            XCTAssertEqual(key0, addresses[index])
+        }
+
+    }
+    
     func testP2PKH() {
         let key = Web3Crypto.p2pkhAddress(
             privKey: "30fa9a0e4db9bc1773e8a2afd8310e47d5f596965c6bef34468360b32df55b78".hexToBytes(),
@@ -65,6 +88,35 @@ final class EnnoUtilTests: XCTestCase {
             hrp: "",
             compressed: true)
         XCTAssertEqual(key3, "15yemm2ZPWKzTeu1JLnVWMotp9R2oFVX37")
+    }
+    
+    func testBtcP2PSHAddress() {
+        let btcPath = "m/49\'/0\'/0\'"
+        if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: btcPath) {
+            let xAccountDepth = Web3Crypto.deriveExtPrivKey(xPrv: xPrv, depth: 3, index: 0)
+
+            let array = [
+                "3MwEmpTo5JXLABsUwPtmvygc2BPxvk7rGM",
+                "36y7HXRuFymTnqruLE6h9wXu1BKcpcCLP1",
+                "3QAf8CKLjdmNUmiMJwwxeu17BMeQEfY92c",
+                "3HEFbBjDbHW5akhY6gx4vjkYscrntdWPW4",
+                "3DMcPrykieHP1dgEWALxi3B3uZn841qVzY",
+                "3Hq5MR136uEzK9LboE4kYyauhVEyBC5qAu",
+                "3MC9EZgR6JRwg8bjyBWXLS7NUxpeG4Wwxs",
+                "32Vb8QhoEhYXnLTF6AUdzbRmL4XnmYNRrG",
+                "3JqCV9RNmZnPLY4XHUuGLcZw3nff6NmTyP",
+                "34muaPyFe2as934Uym7JQfpJjXppxfSn5e",
+                "3A423eS5U2RofBiLxxMJMTmunsRQgZCUbZ",
+            ]
+            
+            for i in 0..<10 {
+                let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xAccountDepth!), depth: 4, index: i)
+                let privKey:[UInt8] = Array(xAddressDepth![46...77])
+
+                let address = Web3Crypto.p2pshAddress(privKey: privKey, hrp: "", compressed: true)
+                XCTAssertEqual(address, array[i])
+            }
+        }
     }
     
     func testBtcAddress() {
@@ -117,10 +169,7 @@ final class EnnoUtilTests: XCTestCase {
             ]
             
             for i in 0..<10 {
-                let xAddressDepth = Web3Crypto.deriveExtPrivKey(xPrv: Base58Encoder.encode(xAccountDepth!), depth: 4, index: i)
-                let privKey:[UInt8] = Array(xAddressDepth![46...77])
-
-                let address = Web3Crypto.bech32Address(privKey: privKey, hrp: "avax")
+                let address = CryptoUtil.shared.avaxNativeAddress(xPriv: xAccountDepth!, depth: 4, index: i, hrp: "avax")
                 XCTAssertEqual(address, array[i])
             }
         }

@@ -162,6 +162,17 @@ public class Web3Crypto {
         return p2pkhAddress(pubKey: publicKey.hexToBytes(), hrp: hrp)
     }
     
+    public class func p2pshAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
+        let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: compressed)
+        return p2pshAddress(pubKey: publicKey.hexToBytes(), hrp: hrp)
+    }
+    
+    public class func p2pshAddress(pubKey: [UInt8], hrp: String) -> String? {
+        let script_sig = "0014".hexToBytes() + CryptoFx.ripemd160(input: CryptoFx.sha256(input: pubKey))
+        let ripesha = "05".hexToBytes() + CryptoFx.ripemd160(input: CryptoFx.sha256(input: script_sig))
+        return Base58Encoder.encode(checksum(datas: ripesha))
+    }
+    
     public class func p2pkhAddress(pubKey: [UInt8], hrp: String) -> String? {
         let ripesha = [0] + CryptoFx.ripemd160(input: CryptoFx.sha256(input: pubKey))
         let checksum = checksum(datas: ripesha)
