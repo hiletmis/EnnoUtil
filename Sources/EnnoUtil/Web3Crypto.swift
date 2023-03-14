@@ -14,7 +14,7 @@ import BigInteger
 
 public class Web3Crypto {
     
-    private static let SECP256k1_ORD = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+    private static let SECP256k1_ORD = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
     static let bech32 = SegwitAddrCoder()
 
     public class func getBip32Key(seed: Seed) -> BIP32KeyPair {
@@ -231,18 +231,18 @@ public class Web3Crypto {
         
         if let chainCode = key.chainCode {
             
-            if let hmac = HashMAC.getHMAC512(data: dat, key: chainCode) {
-                let L = String(hmac.toHexString().prefix(64))
+            if let hmac = HashMAC.getHMAC512(data: dat, key: chainCode),
+                let privInt = BigUInt.init(privKey.toHexString(), radix: 16),
+                let L = BigUInt(String(hmac.toHexString().prefix(64)), radix: 16),
+                let secp256k1_ord = BigUInt.init(SECP256k1_ORD, radix: 16) {
+                
                 let R = String(hmac.toHexString().suffix(64))
-                                                                
-                if let childPrivateKey = HexUtil.modulo(a: HexUtil.addHex(a: L.hexToBytes(), b: privKey), b: SECP256k1_ORD.hexToBytes()) {
-                    
-                    let childChainCode = R.hexToBytes()
-                    return (childPrivateKey, childChainCode)
-                }
+                
+                let childPriv = (L + privInt).quotientAndRemainder(dividingBy: secp256k1_ord).remainder.serialize().bytes
+                                
+                return (childPriv, R.hexToBytes())
             }
         }
-        
         return nil
     }
 
