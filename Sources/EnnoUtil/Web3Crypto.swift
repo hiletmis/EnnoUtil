@@ -201,10 +201,11 @@ public class Web3Crypto {
     }
     
     public class func bech32Address(ripesha: [UInt8], hrp: String) -> String? {
-        if let recoded = try? bech32.encode(hrp: hrp, program: Data(ripesha)) {
-            return recoded
-        }
-        return nil
+        return try? bech32.encode(hrp: hrp, program: Data(ripesha))
+    }
+    
+    public class func encodeSegwit(hrp: String, addr: String) -> [UInt8]? {
+        return try? bech32.decode(hrp: hrp, addr: addr).program.bytes
     }
     
     private class func fingerprintFromPrivKey(privKey: [UInt8]) -> [UInt8] {
