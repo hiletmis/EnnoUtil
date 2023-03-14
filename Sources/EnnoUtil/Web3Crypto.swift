@@ -181,6 +181,10 @@ public class Web3Crypto {
         return Base58Encoder.encode(checksum)
     }
     
+    public class func validateMnemonic(seed: Seed) -> Bool {
+        return true
+    }
+    
     public class func bech32Address(privKey: [UInt8], hrp: String) -> String? {
         let ripesha = secp256k1Address(privKey: privKey)
         return bech32Address(ripesha: ripesha, hrp: hrp)

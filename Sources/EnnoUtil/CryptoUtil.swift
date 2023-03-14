@@ -258,8 +258,13 @@ public class CryptoUtil: CryptoUtilProtocol {
     }
     
     public func web3Account(seed: Seed, path: String) -> Web3Account? {
-        let keypair = Web3Crypto.getBip32Key(seed: seed)
-        return  Web3Crypto.Account(path: path, key: keypair)
+        if Web3Crypto.validateMnemonic(seed: seed) {
+            let keypair = Web3Crypto.getBip32Key(seed: seed)
+            return  Web3Crypto.Account(path: path, key: keypair)
+        } else {
+            return nil
+        }
+
     }
     
     public func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey? {
