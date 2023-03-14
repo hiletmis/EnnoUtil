@@ -10,6 +10,7 @@ import CommonCrypto
 import B58
 import Web3Util
 import EIP_712
+import BigInteger
 
 public class Web3Crypto {
     
@@ -166,6 +167,10 @@ public class Web3Crypto {
     public class func secp256k1Address(privKey: [UInt8]) -> [UInt8] {
         let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: true)
         return CryptoFx.ripemd160(input: CryptoFx.sha256(input: publicKey.hexToBytes()))
+    }
+    
+    public class func getBigUInt(val: Any) -> BigUInt? {
+        return val as? BigUInt
     }
     
     public class func p2pkhAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
