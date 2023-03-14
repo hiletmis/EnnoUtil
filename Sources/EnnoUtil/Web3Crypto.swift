@@ -9,6 +9,7 @@ import Foundation
 import CommonCrypto
 import B58
 import Web3Util
+import EIP_712
 
 public class Web3Crypto {
     
@@ -147,6 +148,15 @@ public class Web3Crypto {
             return Address(privateKey: privateKey).hexToBytes()
         }
         return nil
+    }
+    
+    public class func encodeTyped(messageJson: String) -> Data? {
+        do {
+            guard let data = messageJson.data(using: .utf8) else { return nil }
+            return try JSONDecoder().decode(EIP712TypedData.self, from: data).signHash
+        } catch {
+            return nil
+        }
     }
     
     private class func checksum(datas: [UInt8]) -> [UInt8] {
