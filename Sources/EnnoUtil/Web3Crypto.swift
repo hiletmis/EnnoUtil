@@ -160,8 +160,13 @@ public class Web3Crypto {
         }
     }
     
-    private class func checksum(datas: [UInt8]) -> [UInt8] {
+    public class func checksum(datas: [UInt8]) -> [UInt8] {
         return datas + CryptoFx.sha256(input: CryptoFx.sha256(input: datas)).prefix(4)
+    }
+    
+    public class func validateChecksum(datas: [UInt8]) -> [UInt8]? {
+        let data = Data(datas.prefix(datas.count - 4)).bytes
+        return datas == checksum(datas: data) ? data : nil
     }
     
     public class func secp256k1Address(privKey: [UInt8]) -> [UInt8] {
@@ -192,7 +197,6 @@ public class Web3Crypto {
     public class func p2pkhAddress(pubKey: [UInt8], hrp: String) -> String? {
         let ripesha = [0] + CryptoFx.ripemd160(input: CryptoFx.sha256(input: pubKey))
         let checksum = checksum(datas: ripesha)
-        print(checksum.toHexString())
         return Base58Encoder.encode(checksum)
     }
     

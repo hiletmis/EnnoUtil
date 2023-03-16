@@ -51,6 +51,12 @@ final class EnnoUtilTests: XCTestCase {
         }
     }
     
+    func testChecksum() {
+        let encode = Base58Encoder.encode(Web3Crypto.checksum(datas: [1,1,1,1,1,1,1,1,1]))
+        let validate = Web3Crypto.validateChecksum(datas: Base58Encoder.decode(encode))
+        XCTAssertEqual(validate, [1,1,1,1,1,1,1,1,1])
+    }
+    
     func testP2PSH() {
         
         let pubkeys = [
