@@ -30,14 +30,14 @@ public class Web3Crypto {
         let keyPair = getBip32Key(seed: seed)
         
         if let privKey = keyPair.privateKey {
-            return fingerprintFromPrivKey(privKey: privKey)
+            return fingerprintParentKey(privKey: privKey)
         }
         
         return nil
     }
     
     public class func Account(path: String, key: BIP32KeyPair) -> Web3Account? {
-        if let extendedPrivateKey = deriveExtPrivKey(path: path, key: key) {
+        if let extendedPrivateKey = deriveExtKey(path: path, key: key) {
             let privKey = Array(extendedPrivateKey[46...77])
             let pubKey = PublicKey(privKey: privKey)
             let address = Address(privateKey: privKey)
@@ -69,18 +69,30 @@ public class Web3Crypto {
     public class func Address(privateKey: [UInt8]) -> String {
         Web3Util.Key.getAddressFromPrivateKey(privKey: privateKey)
     }
+    
+    public class func derivePublicKey(xPub: String, index: Int) -> [UInt8]? {
+        let path = "m/\(index)"
+        let key = Base58Encoder.decode(xPub)
+        let publicKey:[UInt8] = Array(key[45...77])
+        let chainCode:[UInt8] = Array(key[13...44])
+        let depth: Int = Int(Array(key[4...5]).first ?? 0)
 
-    public class func deriveExtPrivKey(xPrv: String, depth: Int, index: Int) -> [UInt8]? {
+        let xPub = BIP32KeyPair.init(privateKey: nil, chainCode: chainCode, publicKey: publicKey)
+        return deriveExtKey(path: path, key: xPub, depth: depth, xPub: true)
+    }
+    
+    public class func deriveExtKey(xPrv: String, index: Int, xPub: Bool = false) -> [UInt8]? {
         let path = "m/\(index)"
         let key = Base58Encoder.decode(xPrv)
         let privKey:[UInt8] = Array(key[46...77])
         let chainCode:[UInt8] = Array(key[13...44])
+        let depth: Int = Int(Array(key[4...5]).first ?? 0)
 
         let xPriv = BIP32KeyPair.init(privateKey: privKey, chainCode: chainCode, publicKey: nil)
-        return deriveExtPrivKey(path: path, key: xPriv, depth: depth)
+        return deriveExtKey(path: path, key: xPriv, depth: depth, xPub: xPub)
     }
     
-    public class func deriveExtPrivKey(path: String, key: BIP32KeyPair, depth: Int = 0) -> [UInt8]? {
+    public class func deriveExtKey(path: String, key: BIP32KeyPair, depth: Int = 0, xPub: Bool = false) -> [UInt8]? {
         
         if !testPath(path: path) {
             return nil
@@ -99,52 +111,72 @@ public class Web3Crypto {
             
             pathNumbers.append(isHardened ? integerValue + hardened : integerValue)
         }
-                
-        guard let masterPrivKey = key.privateKey else { return nil }
+
+        let isPublicParent = key.privateKey == nil
+
         guard let masterChainCode = key.chainCode else { return nil }
 
         var depth = depth
         var parentFingerprint:[UInt8] = []
         var childNumber = 0
-        var privateKey = masterPrivKey
+        var privateKey = isPublicParent ? key.publicKey : key.privateKey!
+        var publicKey : [UInt8] = []
         var chainCode = masterChainCode
         
         for item in pathNumbers {
             depth += 1
             
             childNumber = item
-            parentFingerprint = fingerprintFromPrivKey(privKey: privateKey)
-            
-            let key = BIP32KeyPair.init(privateKey: privateKey, chainCode: chainCode, publicKey: nil)
-            
-            if let (privKey, derivedChainCode) = derivePath(key: key, childNumber: childNumber) {
-                privateKey = privKey
-                chainCode = derivedChainCode
+            parentFingerprint = fingerprintParentKey(privKey: privateKey, isPublicKey: isPublicParent)
+             
+            if isPublicParent {
+                if let (privKey, derivedChainCode) = derivePubPath(xPub: privateKey, chainCode: chainCode, childNumber: childNumber) {
+                    privateKey = privKey
+                    publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privateKey, compressed: true).hexToBytes()
+                    chainCode = derivedChainCode
+                } else {
+                    return nil
+                }
             } else {
-                return nil
+                let key = BIP32KeyPair.init(privateKey: privateKey, chainCode: chainCode, publicKey: nil)
+
+                if let (privKey, derivedChainCode) = derivePath(key: key, childNumber: childNumber) {
+                    privateKey = privKey
+                    publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privateKey, compressed: true).hexToBytes()
+                    chainCode = derivedChainCode
+                } else {
+                    return nil
+                }
             }
+            
+
         }
         
-        let keyBytes:[UInt8] = [0] + privateKey
+        let keyBytes:[UInt8] = xPub
+        ? publicKey
+        : [0] + privateKey
         let depthKey = byteArray(from: depth).suffix(1)
         let childNumberBytes = byteArray(from: childNumber).suffix(4)
         
-        let versionBytes = VersionBytes.mainnetPrivate.rawValue.hexToBytes()
+        let versionBytes = xPub
+        ? VersionBytes.mainnetPublic.rawValue.hexToBytes()
+        : VersionBytes.mainnetPrivate.rawValue.hexToBytes()
+        
         let allParts:[UInt8] = versionBytes + depthKey + parentFingerprint + childNumberBytes + chainCode + keyBytes
         
         return checksum(datas: allParts)
     }
     
     public class func deriveAddress(path: String, key: BIP32KeyPair) -> [UInt8]? {
-        if let extendedPrivateKey = deriveExtPrivKey(path: path, key: key) {
+        if let extendedPrivateKey = deriveExtKey(path: path, key: key) {
             let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
             return Address(privateKey: privateKey).hexToBytes()
         }
         return nil
     }
     
-    public class func deriveAddress(xPriv: Web3ExtPrivateKey, depth:Int, index: Int) -> [UInt8]? {
-        if let extendedPrivateKey = deriveExtPrivKey(xPrv: xPriv, depth: depth, index: index) {
+    public class func deriveAddress(xPriv: Web3ExtPrivateKey, index: Int) -> [UInt8]? {
+        if let extendedPrivateKey = deriveExtKey(xPrv: xPriv, index: index) {
             let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
             return Address(privateKey: privateKey).hexToBytes()
         }
@@ -217,11 +249,37 @@ public class Web3Crypto {
         return try? bech32.decode(hrp: hrp, addr: addr).program.bytes
     }
     
-    private class func fingerprintFromPrivKey(privKey: [UInt8]) -> [UInt8] {
-        return Data(secp256k1Address(privKey: privKey)).prefix(4).bytes
+    private class func fingerprintParentKey(privKey: [UInt8], isPublicKey: Bool = false) -> [UInt8] {
+        if !isPublicKey {
+            return Data(secp256k1Address(privKey: privKey)).prefix(4).bytes
+        } else {
+            return Data(CryptoFx.ripemd160(input: CryptoFx.sha256(input: privKey))).prefix(4).bytes
+        }
+    }
+     
+    public class func derivePubPath(xPub: [UInt8], chainCode: [UInt8], childNumber: Int) -> ([UInt8], [UInt8])? {
+        var dat: [UInt8] = xPub
+
+        if childNumber >= Int(truncating: pow(2, 31) as NSNumber) {
+            return nil
+        }
+          
+        dat += byteArray(from: childNumber).suffix(4)
+        
+        if let hmac = HashMAC.getHMAC512(data: dat, key: chainCode),
+            let L = BigUInt(String(hmac.toHexString().prefix(64)), radix: 16) {
+            let R = String(hmac.toHexString().suffix(64))
+            
+            //let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: li, compressed: false).hexToBytes()
+
+            //let childPub = HexUtil.addHex(a: li, b: xPub)
+            return (L.serialize().bytes, R.hexToBytes())
+        }
+        
+        return nil
     }
     
-    private class func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
+    public class func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
         var dat: [UInt8] = []
                 
         guard let privKey = key.privateKey else { return nil }

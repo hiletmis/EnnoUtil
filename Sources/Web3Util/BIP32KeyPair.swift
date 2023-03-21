@@ -14,7 +14,7 @@ public struct BIP32KeyPair {
     public var isExtended: Bool { get { chainCode != nil } }
     
     public init(privateKey: [UInt8]?, chainCode: [UInt8]?, publicKey: [UInt8]?) {
-        precondition(privateKey != nil || (chainCode == nil && publicKey != nil))
+        precondition(privateKey != nil || (chainCode != nil && publicKey != nil))
         
         if (privateKey != nil) {
             self.privateKey = Util.shared.dropZeroPrefix(uint8: privateKey!)

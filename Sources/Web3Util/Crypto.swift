@@ -178,6 +178,12 @@ class Crypto {
 
         return (secretKey, secp256k1PublicFromPrivate(secretKey))
     }
+    
+    func scalarAdd(pubKey pubKeyBytes: [UInt8], tweak: [UInt8]) -> [UInt8]  {
+        var pubKey = secp256k1_pubkey()
+        _ = secp256k1_ec_pubkey_tweak_add(secp256k1Ctx, &pubKey, tweak)
+        return _secp256k1PubToBytes(&pubKey, compressed: true)
+    }
 
     func secp256k1ECDH(privKey: [UInt8], pubKey pubKeyBytes: [UInt8]) -> [UInt8] {
         var pubKey = secp256k1_pubkey()

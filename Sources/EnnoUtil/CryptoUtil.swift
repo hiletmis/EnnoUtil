@@ -16,6 +16,7 @@ public typealias Web3Address = String
 public typealias Web3PrivateKey = String
 public typealias Web3PublicKey = String
 public typealias Web3ExtPrivateKey = String
+public typealias Web3ExtPublicKey = String
 public typealias Web3Account = Account
 
 public typealias AvalancheNativeAddress = String
@@ -185,6 +186,11 @@ public protocol CryptoUtilProtocol {
      - Returns: a new generated account's external private key from the seed-phrase
      */
     func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey?
+    
+    /**
+     - Returns: a new generated account's external public key from the seed-phrase
+     */
+    func web3xPub(seed: Seed, path: String) -> Web3ExtPublicKey?
 
     /**
      - Parameter: privateKey is a key to an address that gives access
@@ -253,7 +259,7 @@ public class CryptoUtil: CryptoUtilProtocol {
     }
     
     public func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address? {
-        guard let address = Web3Crypto.deriveAddress(xPriv: xPriv, depth: depth, index: index) else { return nil }
+        guard let address = Web3Crypto.deriveAddress(xPriv: xPriv, index: index) else { return nil }
         return "0x" + address.toHexString()
     }
     
@@ -269,7 +275,15 @@ public class CryptoUtil: CryptoUtilProtocol {
     
     public func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey? {
         let keypair = Web3Crypto.getBip32Key(seed: seed)
-        if let key = Web3Crypto.deriveExtPrivKey(path: path, key: keypair) {
+        if let key = Web3Crypto.deriveExtKey(path: path, key: keypair) {
+            return Base58Encoder.encode(key)
+        }
+        return nil
+    }
+    
+    public func web3xPub(seed: Seed, path: String) -> Web3ExtPrivateKey? {
+        let keypair = Web3Crypto.getBip32Key(seed: seed)
+        if let key = Web3Crypto.deriveExtKey(path: path, key: keypair, xPub: true) {
             return Base58Encoder.encode(key)
         }
         return nil
