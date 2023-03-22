@@ -196,10 +196,14 @@ public class Web3Crypto {
         return datas + CryptoFx.sha256(input: CryptoFx.sha256(input: datas)).prefix(4)
     }
     
+    public class func cb58Checksum(data: [UInt8]) -> [UInt8] {
+        return data + CryptoUtil.shared.sha256(input: data).suffix(4)
+    }
+    
     public class func validateChecksum(datas: [UInt8]) -> [UInt8]? {
         guard datas.count > 4 else { return nil }
         let data = Data(datas.prefix(datas.count - 4)).bytes
-        return datas == checksum(datas: data) ? data : nil
+        return datas == cb58Checksum(data: data) ? data : nil
     }
     
     public class func secp256k1Address(privKey: [UInt8]) -> [UInt8] {

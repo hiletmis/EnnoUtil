@@ -64,9 +64,10 @@ final class EnnoUtilTests: XCTestCase {
     }
     
     func testChecksum() {
-        let encode = Base58Encoder.encode(Web3Crypto.checksum(datas: [1,1,1,1,1,1,1,1,1]))
+        let data : [UInt8] = [1,1,1,1,1,1,1,1,1]
+        let encode = Base58Encoder.encode(Web3Crypto.cb58Checksum(data: data))
         let validate = Web3Crypto.validateChecksum(datas: Base58Encoder.decode(encode))
-        XCTAssertEqual(validate, [1,1,1,1,1,1,1,1,1])
+        XCTAssertEqual(validate, data)
     }
     
     func testP2PSH() {
@@ -194,6 +195,10 @@ final class EnnoUtilTests: XCTestCase {
                 XCTAssertEqual(address, array[i])
             }
         }
+    }
+    
+    func testBase58Decode() {
+        XCTAssertEqual(Web3Crypto.validateChecksum(datas: Base58Encoder.decode("2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5")), [4, 39, 212, 178, 42, 42, 120, 188, 221, 212, 86, 116, 44, 175, 145, 181, 107, 173, 191, 249, 133, 238, 25, 174, 241, 69, 115, 231, 52, 63, 214, 82])
     }
      
     func testAvaxAddressFromXPub() {
