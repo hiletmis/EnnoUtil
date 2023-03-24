@@ -86,7 +86,7 @@ public final class Web3PrivateKey {
             finalCtx = ctx
             self.ctxSelfManaged = true
         } else {
-            let ctx = try secp256k1_default_ctx_create(errorThrowable: KeyError.internalError)
+            let ctx = Crypto.shared.secp256k1Ctx
             finalCtx = ctx
             self.ctxSelfManaged = false
         }

@@ -44,7 +44,7 @@ extension String {
 }
 
 
-extension Web3ExtPrivateKey {
+extension Web3ExtPrivateKeyHex {
     public func getPrivKey() -> [UInt8] {
         let privateKey:[UInt8] = Array(Base58Encoder.decode(self)[46...77])
         return privateKey

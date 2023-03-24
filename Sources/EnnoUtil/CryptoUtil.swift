@@ -3,6 +3,7 @@ import Foundation
 import B58
 import Curve25519
 import Ed25519
+import Web3Util
 
 public typealias Base58 = String
 public typealias Base64 = String
@@ -12,11 +13,11 @@ public typealias PrivateKey = String
 public typealias Seed = String
 public typealias Address = String
 
-public typealias Web3Address = String
-public typealias Web3PrivateKey = String
-public typealias Web3PublicKey = String
-public typealias Web3ExtPrivateKey = String
-public typealias Web3ExtPublicKey = String
+public typealias Web3AddressHex = String
+public typealias Web3PrivateKeyHex = String
+public typealias Web3PublicKeyHex = String
+public typealias Web3ExtPrivateKeyHex = String
+public typealias Web3ExtPublicKeyHex = String
 public typealias Web3Account = Account
 
 public typealias AvalancheNativeAddress = String
@@ -27,9 +28,9 @@ public struct KeyPair {
 }
 
 public struct Account {
-    public let address: Web3Address
-    public let publicKey: Web3PublicKey
-    public let privateKey: Web3PrivateKey
+    public let address: Web3AddressHex
+    public let publicKey: Web3PublicKeyHex
+    public let privateKey: Web3PrivateKeyHex
 }
 
 public enum ChainId {
@@ -163,11 +164,11 @@ public protocol CryptoUtilProtocol {
     /**
      - Returns: a new generated Web3 address as String from the seed-phrase
      */
-    func web3address(seed: Seed, path: String) -> Web3Address?
+    func web3address(seed: Seed, path: String) -> Web3AddressHex?
     /**
     - Returns: a new generated Web3 address as String from the extended private key.
     */
-   func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address?
+   func web3address(xPriv: Web3ExtPrivateKeyHex, depth: Int, index: Int) -> Web3AddressHex?
     /**
     - Returns: a new generated Avalanche Native address as String from the extended private key.
     */
@@ -185,12 +186,12 @@ public protocol CryptoUtilProtocol {
     /**
      - Returns: a new generated account's external private key from the seed-phrase
      */
-    func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey?
+    func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKeyHex?
     
     /**
      - Returns: a new generated account's external public key from the seed-phrase
      */
-    func web3xPub(seed: Seed, path: String) -> Web3ExtPublicKey?
+    func web3xPub(seed: Seed, path: String) -> Web3ExtPublicKeyHex?
 
     /**
      - Parameter: privateKey is a key to an address that gives access
@@ -252,13 +253,13 @@ public class CryptoUtil: CryptoUtilProtocol {
         return address(publicKey: key, chainId: chainId)
     }
     
-    public func web3address(seed: Seed, path: String) -> Web3Address? {
+    public func web3address(seed: Seed, path: String) -> Web3AddressHex? {
         let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
         guard let address = Web3Crypto.shared.deriveAddress(path: path, key: keypair) else { return nil }
         return "0x" + address.toHexString()
     }
     
-    public func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address? {
+    public func web3address(xPriv: Web3ExtPrivateKeyHex, depth: Int, index: Int) -> Web3AddressHex? {
         guard let address = Web3Crypto.shared.deriveAddress(xPriv: xPriv, index: index) else { return nil }
         return "0x" + address.toHexString()
     }
@@ -272,7 +273,7 @@ public class CryptoUtil: CryptoUtilProtocol {
         }
     }
     
-    public func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey? {
+    public func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKeyHex? {
         let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
         if let key = Web3Crypto.shared.deriveExtKey(path: path, key: keypair) {
             return Base58Encoder.encode(key)
@@ -280,7 +281,7 @@ public class CryptoUtil: CryptoUtilProtocol {
         return nil
     }
     
-    public func web3xPub(seed: Seed, path: String) -> Web3ExtPrivateKey? {
+    public func web3xPub(seed: Seed, path: String) -> Web3ExtPrivateKeyHex? {
         let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
         if let key = Web3Crypto.shared.deriveExtKey(path: path, key: keypair, xPub: true) {
             return Base58Encoder.encode(key)

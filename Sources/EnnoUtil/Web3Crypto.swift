@@ -39,6 +39,14 @@ public class Web3Crypto {
         return nil
     }
     
+    public func PrivateKey(privateKey: [UInt8]) throws -> Web3PrivateKey? {
+        do {
+            return try Web3PrivateKey(privateKey: privateKey)
+        } catch {
+            return nil
+        }
+    }
+    
     public func Account(path: String, key: BIP32KeyPair) -> Web3Account? {
         if let extendedPrivateKey = deriveExtKey(path: path, key: key) {
             let privKey = Array(extendedPrivateKey[46...77])
@@ -178,7 +186,7 @@ public class Web3Crypto {
         return nil
     }
     
-    public func deriveAddress(xPriv: Web3ExtPrivateKey, index: Int) -> [UInt8]? {
+    public func deriveAddress(xPriv: Web3ExtPrivateKeyHex, index: Int) -> [UInt8]? {
         if let extendedPrivateKey = deriveExtKey(xPrv: xPriv, index: index) {
             let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
             return Address(privateKey: privateKey).hexToBytes()

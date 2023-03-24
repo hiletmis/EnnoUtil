@@ -236,5 +236,5 @@ class Crypto {
      
     func random(count: Int) -> [UInt8] {
         AES.randomIV(count)
-    }     
+    }
 }
