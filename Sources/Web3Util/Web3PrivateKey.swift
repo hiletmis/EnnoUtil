@@ -10,7 +10,7 @@ import Foundation
 import secp256k1
 import Crypto
 
-public final class Web3PrivateKey {
+public struct Web3PrivateKey {
 
     // MARK: - Properties
 
@@ -34,13 +34,6 @@ public final class Web3PrivateKey {
      * - Read `rand` bytes from `/dev/urandom` and call it `bytes`.
      * - Create the keccak256 hash of `bytes` and initialize this private key with the generated hash.
      */
-
-    /**
-     * Convenient initializer for `init(privateKey:)`
-     */
-    public required convenience init(_ bytes: [UInt8]) throws {
-        try self.init(privateKey: bytes)
-    }
 
     /**
      * Initializes a new instance of `EthereumPrivateKey` with the given `privateKey` Bytes.
@@ -170,14 +163,6 @@ public final class Web3PrivateKey {
         case internalError
         case keyMalformed
         case pubKeyGenerationFailed
-    }
-
-    // MARK: - Deinitialization
-
-    deinit {
-        if !ctxSelfManaged {
-            secp256k1_context_destroy(ctx)
-        }
     }
     
 }
