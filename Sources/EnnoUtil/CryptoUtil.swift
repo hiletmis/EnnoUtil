@@ -253,48 +253,47 @@ public class CryptoUtil: CryptoUtilProtocol {
     }
     
     public func web3address(seed: Seed, path: String) -> Web3Address? {
-        let keypair = Web3Crypto.getBip32Key(seed: seed)
-        guard let address = Web3Crypto.deriveAddress(path: path, key: keypair) else { return nil }
+        let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
+        guard let address = Web3Crypto.shared.deriveAddress(path: path, key: keypair) else { return nil }
         return "0x" + address.toHexString()
     }
     
     public func web3address(xPriv: Web3ExtPrivateKey, depth: Int, index: Int) -> Web3Address? {
-        guard let address = Web3Crypto.deriveAddress(xPriv: xPriv, index: index) else { return nil }
+        guard let address = Web3Crypto.shared.deriveAddress(xPriv: xPriv, index: index) else { return nil }
         return "0x" + address.toHexString()
     }
     
     public func web3Account(seed: Seed, path: String) -> Web3Account? {
-        if Web3Crypto.validateMnemonic(seed: seed) {
-            let keypair = Web3Crypto.getBip32Key(seed: seed)
-            return  Web3Crypto.Account(path: path, key: keypair)
+        if Web3Crypto.shared.validateMnemonic(seed: seed) {
+            let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
+            return Web3Crypto.shared.Account(path: path, key: keypair)
         } else {
             return nil
         }
-
     }
     
     public func web3xPrv(seed: Seed, path: String) -> Web3ExtPrivateKey? {
-        let keypair = Web3Crypto.getBip32Key(seed: seed)
-        if let key = Web3Crypto.deriveExtKey(path: path, key: keypair) {
+        let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
+        if let key = Web3Crypto.shared.deriveExtKey(path: path, key: keypair) {
             return Base58Encoder.encode(key)
         }
         return nil
     }
     
     public func web3xPub(seed: Seed, path: String) -> Web3ExtPrivateKey? {
-        let keypair = Web3Crypto.getBip32Key(seed: seed)
-        if let key = Web3Crypto.deriveExtKey(path: path, key: keypair, xPub: true) {
+        let keypair = Web3Crypto.shared.getBip32Key(seed: seed)
+        if let key = Web3Crypto.shared.deriveExtKey(path: path, key: keypair, xPub: true) {
             return Base58Encoder.encode(key)
         }
         return nil
     }
     
     public func avaxNativeAddress(xPriv: [UInt8], hrp: String) -> AvalancheNativeAddress? {
-        return Web3Crypto.bech32Address(privKey: xPriv, hrp: hrp)
+        return Web3Crypto.shared.bech32Address(privKey: xPriv, hrp: hrp)
     }
     
     public func avaxNativeAddress(ripesha: [UInt8], hrp: String) -> AvalancheNativeAddress? {
-        return Web3Crypto.bech32Address(ripesha: ripesha, hrp: hrp)
+        return Web3Crypto.shared.bech32Address(ripesha: ripesha, hrp: hrp)
     }
     
     public func signBytes(bytes: Bytes, privateKey: PrivateKey) -> Bytes? {
