@@ -14,7 +14,7 @@ import BigInteger
 
 public class Web3Crypto {
     
-    static let shared = Web3Crypto()
+    public static let shared: Web3Crypto  = Web3Crypto()
 
     private let SECP256k1_ORD = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
     

@@ -230,7 +230,7 @@ public class CryptoUtil: CryptoUtilProtocol {
     
     public init() {}
     
-    public static let shared: CryptoUtil  = CryptoUtil()
+    public static let shared: CryptoUtil = CryptoUtil()
 
     public func address(publicKey: PublicKey, chainId: UInt8?) -> Address? {
         
