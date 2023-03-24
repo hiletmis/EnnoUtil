@@ -14,19 +14,22 @@ import BigInteger
 
 public class Web3Crypto {
     
-    private static let SECP256k1_ORD = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
-    static let bech32 = SegwitAddrCoder()
+    public static let shared: Web3Crypto  = Web3Crypto()
 
-    public class func getBip32Key(seed: Seed) -> BIP32KeyPair {
+    private let SECP256k1_ORD = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+    
+    let bech32 = SegwitAddrCoder()
+
+    public func getBip32Key(seed: Seed) -> BIP32KeyPair {
         let binarySeed = Mnemonic.toBinarySeed(mnemonicPhrase: seed)
         return BIP32KeyPair(fromSeed: binarySeed)
     }
     
-    public class func getBip32Key(binarySeed: [UInt8]) -> BIP32KeyPair {
+    public func getBip32Key(binarySeed: [UInt8]) -> BIP32KeyPair {
         return BIP32KeyPair(fromSeed: binarySeed)
     }
     
-    public class func getFingerprint(seed: Seed) -> [UInt8]? {
+    public func getFingerprint(seed: Seed) -> [UInt8]? {
         let keyPair = getBip32Key(seed: seed)
         
         if let privKey = keyPair.privateKey {
@@ -36,7 +39,7 @@ public class Web3Crypto {
         return nil
     }
     
-    public class func Account(path: String, key: BIP32KeyPair) -> Web3Account? {
+    public func Account(path: String, key: BIP32KeyPair) -> Web3Account? {
         if let extendedPrivateKey = deriveExtKey(path: path, key: key) {
             let privKey = Array(extendedPrivateKey[46...77])
             let pubKey = PublicKey(privKey: privKey)
@@ -50,27 +53,27 @@ public class Web3Crypto {
     }
     
     
-    public class func PublicKey(privKey: String, compressed: Bool = false) -> String {
+    public func PublicKey(privKey: String, compressed: Bool = false) -> String {
         PublicKey(privKey: privKey.hexToBytes(), compressed: compressed)
     }
     
-    public class func PublicKey(privKey: [UInt8], compressed: Bool = false) -> String {
+    public func PublicKey(privKey: [UInt8], compressed: Bool = false) -> String {
         Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: compressed)
     }
     
-    public class func Address(publicKey: String) -> String {
+    public func Address(publicKey: String) -> String {
         Web3Util.Key.getAddressFromPublicKey(publicKey: publicKey.hexToBytes())
     }
     
-    public class func Address(privateKey: String) -> String {
+    public func Address(privateKey: String) -> String {
         Address(privateKey: privateKey.hexToBytes())
     }
     
-    public class func Address(privateKey: [UInt8]) -> String {
+    public func Address(privateKey: [UInt8]) -> String {
         Web3Util.Key.getAddressFromPrivateKey(privKey: privateKey)
     }
     
-    public class func derivePublicKey(xPub: String, index: Int) -> [UInt8]? {
+    public func derivePublicKey(xPub: String, index: Int) -> [UInt8]? {
         let path = "m/\(index)"
         let key = Base58Encoder.decode(xPub)
         let publicKey:[UInt8] = Array(key[45...77])
@@ -81,7 +84,7 @@ public class Web3Crypto {
         return deriveExtKey(path: path, key: xPub, depth: depth, xPub: true)
     }
     
-    public class func deriveExtKey(xPrv: String, index: Int, xPub: Bool = false) -> [UInt8]? {
+    public func deriveExtKey(xPrv: String, index: Int, xPub: Bool = false) -> [UInt8]? {
         let path = "m/\(index)"
         let key = Base58Encoder.decode(xPrv)
         let privKey:[UInt8] = Array(key[46...77])
@@ -92,7 +95,7 @@ public class Web3Crypto {
         return deriveExtKey(path: path, key: xPriv, depth: depth, xPub: xPub)
     }
     
-    public class func deriveExtKey(path: String, key: BIP32KeyPair, depth: Int = 0, xPub: Bool = false) -> [UInt8]? {
+    public func deriveExtKey(path: String, key: BIP32KeyPair, depth: Int = 0, xPub: Bool = false) -> [UInt8]? {
         
         if !testPath(path: path) {
             return nil
@@ -167,7 +170,7 @@ public class Web3Crypto {
         return checksum(datas: allParts)
     }
     
-    public class func deriveAddress(path: String, key: BIP32KeyPair) -> [UInt8]? {
+    public func deriveAddress(path: String, key: BIP32KeyPair) -> [UInt8]? {
         if let extendedPrivateKey = deriveExtKey(path: path, key: key) {
             let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
             return Address(privateKey: privateKey).hexToBytes()
@@ -175,7 +178,7 @@ public class Web3Crypto {
         return nil
     }
     
-    public class func deriveAddress(xPriv: Web3ExtPrivateKey, index: Int) -> [UInt8]? {
+    public func deriveAddress(xPriv: Web3ExtPrivateKey, index: Int) -> [UInt8]? {
         if let extendedPrivateKey = deriveExtKey(xPrv: xPriv, index: index) {
             let privateKey:[UInt8] = Array(extendedPrivateKey[46...77])
             return Address(privateKey: privateKey).hexToBytes()
@@ -183,7 +186,7 @@ public class Web3Crypto {
         return nil
     }
     
-    public class func encodeTyped(messageJson: String) -> Data? {
+    public func encodeTyped(messageJson: String) -> Data? {
         do {
             guard let data = messageJson.data(using: .utf8) else { return nil }
             return try JSONDecoder().decode(EIP712TypedData.self, from: data).signHash
@@ -192,69 +195,69 @@ public class Web3Crypto {
         }
     }
     
-    public class func checksum(datas: [UInt8]) -> [UInt8] {
+    public func checksum(datas: [UInt8]) -> [UInt8] {
         return datas + CryptoFx.sha256(input: CryptoFx.sha256(input: datas)).prefix(4)
     }
     
-    public class func cb58Checksum(data: [UInt8]) -> [UInt8] {
+    public func cb58Checksum(data: [UInt8]) -> [UInt8] {
         return data + CryptoUtil.shared.sha256(input: data).suffix(4)
     }
     
-    public class func validateChecksum(datas: [UInt8]) -> [UInt8]? {
+    public func validateChecksum(datas: [UInt8]) -> [UInt8]? {
         guard datas.count > 4 else { return nil }
         let data = Data(datas.prefix(datas.count - 4)).bytes
         return datas == cb58Checksum(data: data) ? data : nil
     }
     
-    public class func secp256k1Address(privKey: [UInt8]) -> [UInt8] {
+    public func secp256k1Address(privKey: [UInt8]) -> [UInt8] {
         let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: true)
         return CryptoFx.ripemd160(input: CryptoFx.sha256(input: publicKey.hexToBytes()))
     }
     
-    public class func getBigUInt(val: Any) -> BigUInt? {
+    public func getBigUInt(val: Any) -> BigUInt? {
         return val as? BigUInt
     }
     
-    public class func p2pkhAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
+    public func p2pkhAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
         let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: compressed)
         return p2pkhAddress(pubKey: publicKey.hexToBytes(), hrp: hrp)
     }
     
-    public class func p2pshAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
+    public func p2pshAddress(privKey: [UInt8], hrp: String, compressed: Bool = false) -> String? {
         let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: privKey, compressed: compressed)
         return p2pshAddress(pubKey: publicKey.hexToBytes(), hrp: hrp)
     }
     
-    public class func p2pshAddress(pubKey: [UInt8], hrp: String) -> String? {
+    public func p2pshAddress(pubKey: [UInt8], hrp: String) -> String? {
         let script_sig = "0014".hexToBytes() + CryptoFx.ripemd160(input: CryptoFx.sha256(input: pubKey))
         let ripesha = "05".hexToBytes() + CryptoFx.ripemd160(input: CryptoFx.sha256(input: script_sig))
         return Base58Encoder.encode(checksum(datas: ripesha))
     }
     
-    public class func p2pkhAddress(pubKey: [UInt8], hrp: String) -> String? {
+    public func p2pkhAddress(pubKey: [UInt8], hrp: String) -> String? {
         let ripesha = [0] + CryptoFx.ripemd160(input: CryptoFx.sha256(input: pubKey))
         let checksum = checksum(datas: ripesha)
         return Base58Encoder.encode(checksum)
     }
     
-    public class func validateMnemonic(seed: Seed) -> Bool {
+    public func validateMnemonic(seed: Seed) -> Bool {
         return true
     }
     
-    public class func bech32Address(privKey: [UInt8], hrp: String) -> String? {
+    public func bech32Address(privKey: [UInt8], hrp: String) -> String? {
         let ripesha = secp256k1Address(privKey: privKey)
         return bech32Address(ripesha: ripesha, hrp: hrp)
     }
     
-    public class func bech32Address(ripesha: [UInt8], hrp: String) -> String? {
+    public func bech32Address(ripesha: [UInt8], hrp: String) -> String? {
         return try? bech32.encode(hrp: hrp, program: Data(ripesha))
     }
     
-    public class func encodeSegwit(hrp: String, addr: String) -> [UInt8]? {
+    public func encodeSegwit(hrp: String, addr: String) -> [UInt8]? {
         return try? bech32.decode(hrp: hrp, addr: addr).program.bytes
     }
     
-    private class func fingerprintParentKey(privKey: [UInt8], isPublicKey: Bool = false) -> [UInt8] {
+    private func fingerprintParentKey(privKey: [UInt8], isPublicKey: Bool = false) -> [UInt8] {
         if !isPublicKey {
             return Data(secp256k1Address(privKey: privKey)).prefix(4).bytes
         } else {
@@ -262,7 +265,7 @@ public class Web3Crypto {
         }
     }
      
-    public class func derivePubPath(xPub: [UInt8], chainCode: [UInt8], childNumber: Int) -> ([UInt8], [UInt8])? {
+    public func derivePubPath(xPub: [UInt8], chainCode: [UInt8], childNumber: Int) -> ([UInt8], [UInt8])? {
         var dat: [UInt8] = xPub
 
         if childNumber >= Int(truncating: pow(2, 31) as NSNumber) {
@@ -284,7 +287,7 @@ public class Web3Crypto {
         return nil
     }
     
-    public class func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
+    public func derivePath(key: BIP32KeyPair, childNumber: Int) -> ([UInt8], [UInt8])? {
         var dat: [UInt8] = []
                 
         guard let privKey = key.privateKey else { return nil }
@@ -313,11 +316,11 @@ public class Web3Crypto {
         return nil
     }
 
-    private class func byteArray<T>(from value: T) -> [UInt8] where T: FixedWidthInteger {
+    private func byteArray<T>(from value: T) -> [UInt8] where T: FixedWidthInteger {
         withUnsafeBytes(of: value.bigEndian, Array.init)
     }
     
-    private class func testPath(path:String) -> Bool {
+    private func testPath(path:String) -> Bool {
         let range = NSRange(location: 0, length: path.utf8.count)
         let regex = try! NSRegularExpression(pattern: "m/[0-9'/]+$")
         return regex.firstMatch(in: path, options: [], range: range) != nil

@@ -8,7 +8,7 @@ final class EnnoUtilTests: XCTestCase {
     private static let accountPath = "m/44'/60'/0'"
 
    func testFingerPrint() {
-       XCTAssertEqual(Web3Crypto.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
+       XCTAssertEqual(Web3Crypto.shared.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
    }
     
     func testWeb3Account() {
@@ -32,7 +32,7 @@ final class EnnoUtilTests: XCTestCase {
         let xPriv = "xprv9s21ZrQH143K3G3gd4fbajvM6CoU7aL1Qk4H8tRkR5g6M9NqUmbvCeoWo23NtnHRdwaa3LySYiBbB48TbrYYnNDBc3AAmpJndeCQdeMxFbz"
         let xPub = ""
         if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: "m/") {
-            let xAccountDepth = Web3Crypto.deriveExtKey(xPrv: xPrv, index: 0)
+            let xAccountDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPrv, index: 0)
 
             print(xPrv)
             
@@ -47,7 +47,7 @@ final class EnnoUtilTests: XCTestCase {
 
         if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: EnnoUtilTests.accountPath) {
             XCTAssertEqual(xPrv.lowercased(), key1.lowercased())
-            let xNextDepth = Web3Crypto.deriveExtKey(xPrv: xPrv, index: 0)
+            let xNextDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPrv, index: 0)
             XCTAssertEqual(Base58Encoder.encode(xNextDepth!).lowercased(), key2.lowercased())
             
             let address1 = CryptoUtil.shared.web3address(xPriv: Base58Encoder.encode(xNextDepth!), depth: 4, index: 0)
@@ -65,8 +65,8 @@ final class EnnoUtilTests: XCTestCase {
     
     func testChecksum() {
         let data : [UInt8] = [1,1,1,1,1,1,1,1,1]
-        let encode = Base58Encoder.encode(Web3Crypto.cb58Checksum(data: data))
-        let validate = Web3Crypto.validateChecksum(datas: Base58Encoder.decode(encode))
+        let encode = Base58Encoder.encode(Web3Crypto.shared.cb58Checksum(data: data))
+        let validate = Web3Crypto.shared.validateChecksum(datas: Base58Encoder.decode(encode))
         XCTAssertEqual(validate, data)
     }
     
@@ -87,22 +87,22 @@ final class EnnoUtilTests: XCTestCase {
         ]
         
         for (index, pubkey) in pubkeys.enumerated() {
-            let key0 = Web3Crypto.p2pshAddress( pubKey: pubkey.hexToBytes(), hrp: "")
+            let key0 = Web3Crypto.shared.p2pshAddress( pubKey: pubkey.hexToBytes(), hrp: "")
             XCTAssertEqual(key0, addresses[index])
         }
 
     }
     
     func testP2PKH() {
-        let key = Web3Crypto.p2pkhAddress(
+        let key = Web3Crypto.shared.p2pkhAddress(
             privKey: "30fa9a0e4db9bc1773e8a2afd8310e47d5f596965c6bef34468360b32df55b78".hexToBytes(),
             hrp: "")
         XCTAssertEqual(key, "1E8FqVzE6Er4XrroBVxxbfjUHx7bE94juJ")
-        let key2 = Web3Crypto.p2pkhAddress(
+        let key2 = Web3Crypto.shared.p2pkhAddress(
             pubKey: "031db82dd04f27ae5ffd90ccbd1474d0657bce8879458767f28bd6c2724743c0d5".hexToBytes(),
             hrp: "")
         XCTAssertEqual(key2, "1DA5tQmfYJDKZ7oG1HRMkyS2t5hEn9tMew")
-        let key3 = Web3Crypto.p2pkhAddress(
+        let key3 = Web3Crypto.shared.p2pkhAddress(
             privKey: "0b52b5d35c842a3d5f21d5a2128705740150ea74a68b70d62e28c3cb129e380a".hexToBytes(),
             hrp: "",
             compressed: true)
@@ -112,7 +112,7 @@ final class EnnoUtilTests: XCTestCase {
     func testBtcP2PSHAddress() {
         let btcPath = "m/49\'/0\'/0\'"
         if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: btcPath) {
-            let xAccountDepth = Web3Crypto.deriveExtKey(xPrv: xPrv, index: 0)
+            let xAccountDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPrv, index: 0)
 
             let array = [
                 "3MwEmpTo5JXLABsUwPtmvygc2BPxvk7rGM",
@@ -129,10 +129,10 @@ final class EnnoUtilTests: XCTestCase {
             ]
             
             for i in 0..<10 {
-                let xAddressDepth = Web3Crypto.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
+                let xAddressDepth = Web3Crypto.shared.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
                 let privKey:[UInt8] = Array(xAddressDepth![46...77])
 
-                let address = Web3Crypto.p2pshAddress(privKey: privKey, hrp: "", compressed: true)
+                let address = Web3Crypto.shared.p2pshAddress(privKey: privKey, hrp: "", compressed: true)
                 XCTAssertEqual(address, array[i])
             }
         }
@@ -141,7 +141,7 @@ final class EnnoUtilTests: XCTestCase {
     func testBtcAddress() {
         let btcPath = "m/44\'/0\'/0\'"
         if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: btcPath) {
-            let xAccountDepth = Web3Crypto.deriveExtKey(xPrv: xPrv, index: 0)
+            let xAccountDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPrv, index: 0)
 
             let array = [
                 "1EMTwcC2SXBgR1wCK91KP5ge7xMwnizTdr",
@@ -158,10 +158,10 @@ final class EnnoUtilTests: XCTestCase {
             ]
             
             for i in 0..<10 {
-                let xAddressDepth = Web3Crypto.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
+                let xAddressDepth = Web3Crypto.shared.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
                 let privKey:[UInt8] = Array(xAddressDepth![46...77])
 
-                let address = Web3Crypto.p2pkhAddress(privKey: privKey, hrp: "", compressed: true)
+                let address = Web3Crypto.shared.p2pkhAddress(privKey: privKey, hrp: "", compressed: true)
                 XCTAssertEqual(address, array[i])
             }
         }
@@ -171,7 +171,7 @@ final class EnnoUtilTests: XCTestCase {
         let avaxPath = "m/44\'/9000\'/0\'"
         if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: avaxPath) {
             
-            let xAccountDepth = Web3Crypto.deriveExtKey(xPrv: xPrv, index: 0)
+            let xAccountDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPrv, index: 0)
             
             let array = [
                 "avax1fukjhvzlrvyu3dhv42yqzhjnrz4kvdm38q8p6x",
@@ -188,23 +188,24 @@ final class EnnoUtilTests: XCTestCase {
             ]
             
             for i in 0..<10 {
-                let xAddressDepth = Web3Crypto.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
+                let xAddressDepth = Web3Crypto.shared.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
                 let privKey:[UInt8] = Array(xAddressDepth![46...77])
 
-                let address = Web3Crypto.bech32Address(privKey: privKey, hrp: "avax")
+                let address = Web3Crypto.shared.bech32Address(privKey: privKey, hrp: "avax")
                 XCTAssertEqual(address, array[i])
             }
         }
     }
     
     func testBase58Decode() {
-        XCTAssertEqual(Web3Crypto.validateChecksum(datas: Base58Encoder.decode("2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5")), [4, 39, 212, 178, 42, 42, 120, 188, 221, 212, 86, 116, 44, 175, 145, 181, 107, 173, 191, 249, 133, 238, 25, 174, 241, 69, 115, 231, 52, 63, 214, 82])
+        XCTAssertEqual(Web3Crypto.shared.validateChecksum(datas: Base58Encoder.decode("2q9e4r6Mu3U68nU1fYjgbR6JvwrRx36CohpAX5UQxse55x1Q5")), [4, 39, 212, 178, 42, 42, 120, 188, 221, 212, 86, 116, 44, 175, 145, 181, 107, 173, 191, 249, 133, 238, 25, 174, 241, 69, 115, 231, 52, 63, 214, 82])
+        XCTAssertEqual(Web3Crypto.shared.validateChecksum(datas: Base58Encoder.decode("FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z")), [33, 230, 115, 23, 203, 196, 190, 42, 235, 0, 103, 122, 214, 70, 39, 120, 168, 245, 34, 116, 185, 214, 5, 223, 37, 145, 178, 48, 39, 168, 125, 255])
     }
      
     func testAvaxAddressFromXPub() {
         let avaxPath = "m/44\'/9000\'/0\'"
         if let xPriv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: avaxPath) {
-            let xAccountDepth = Web3Crypto.deriveExtKey(xPrv: xPriv, index: 0)
+            let xAccountDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPriv, index: 0)
             print(Base58Encoder.encode(xAccountDepth!))
             
             
@@ -212,7 +213,7 @@ final class EnnoUtilTests: XCTestCase {
         
         if let xPub = CryptoUtil.shared.web3xPub(seed: EnnoUtilTests.seed, path: avaxPath) {
             
-            let xAccountDepth = Web3Crypto.derivePublicKey(xPub: xPub, index: 0)
+            let xAccountDepth = Web3Crypto.shared.derivePublicKey(xPub: xPub, index: 0)
             print(Base58Encoder.encode(xAccountDepth!))
 
 
@@ -231,22 +232,22 @@ final class EnnoUtilTests: XCTestCase {
             ]
             
             for i in 0..<10 {
-                let xAddressDepth = Web3Crypto.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
+                let xAddressDepth = Web3Crypto.shared.deriveExtKey(xPrv: Base58Encoder.encode(xAccountDepth!), index: i)
                 let privKey:[UInt8] = Array(xAddressDepth![46...77])
 
-                let address = Web3Crypto.bech32Address(privKey: privKey, hrp: "avax")
+                let address = Web3Crypto.shared.bech32Address(privKey: privKey, hrp: "avax")
                 XCTAssertNotEqual(address, array[i])
             }
         }
     }
     
     func testEncodeSegwit() {
-        let address = Web3Crypto.encodeSegwit(hrp: "avax", addr: "avax1fukjhvzlrvyu3dhv42yqzhjnrz4kvdm38q8p6x")
+        let address = Web3Crypto.shared.encodeSegwit(hrp: "avax", addr: "avax1fukjhvzlrvyu3dhv42yqzhjnrz4kvdm38q8p6x")
         XCTAssertEqual(address, "4f2d2bb05f1b09c8b6ecaa88015e5318ab663771".hexToBytes())
     }
     
     func testTypeData() {
-        let signature = Web3Crypto.encodeTyped(messageJson: "{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\":\"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":1,\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\":{\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}")
+        let signature = Web3Crypto.shared.encodeTyped(messageJson: "{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\":\"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":1,\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\":{\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}")
         XCTAssertEqual(signature?.bytes, "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2".hexToBytes())
     }
     
@@ -255,17 +256,17 @@ final class EnnoUtilTests: XCTestCase {
    }
     
     func testDerive() {
-        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44/60/0/0/0", key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed)), "0x92F7Be306AbF6170A5B0990B2f98Bc465Fa1925B".hexToBytes())
+        XCTAssertEqual(Web3Crypto.shared.deriveAddress(path: "m/44/60/0/0/0", key: Web3Crypto.shared.getBip32Key(seed: EnnoUtilTests.seed)), "0x92F7Be306AbF6170A5B0990B2f98Bc465Fa1925B".hexToBytes())
         
-        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "endorse kite retreat stay thank shed struggle jaguar popular demise grid opera someone record basket laptop school remind jump clump mystery dirt chimney about")), "0xC3b86c8AaBF8208C339A63B6fb7402537089085e".hexToBytes())
+        XCTAssertEqual(Web3Crypto.shared.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.shared.getBip32Key(seed: "endorse kite retreat stay thank shed struggle jaguar popular demise grid opera someone record basket laptop school remind jump clump mystery dirt chimney about")), "0xC3b86c8AaBF8208C339A63B6fb7402537089085e".hexToBytes())
         
-        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: EnnoUtilTests.seed)), "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".hexToBytes())
+        XCTAssertEqual(Web3Crypto.shared.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.shared.getBip32Key(seed: EnnoUtilTests.seed)), "0x4344Eb02Dd0275B724B988AF97758edeaD63cFEa".hexToBytes())
         
-        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "distance where slush wave baby vapor blush kiwi canoe decrease sheriff seed")), "0x9d53Fa5481c30663BcBFeB725fcC5268a8D664ad".hexToBytes())
+        XCTAssertEqual(Web3Crypto.shared.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.shared.getBip32Key(seed: "distance where slush wave baby vapor blush kiwi canoe decrease sheriff seed")), "0x9d53Fa5481c30663BcBFeB725fcC5268a8D664ad".hexToBytes())
         
-        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60k'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "eyebrow myth make situate keen verify evolve odor surprise basic capable silk kid critic filter congress hand deer push act weather patient swap follow")), nil)
+        XCTAssertEqual(Web3Crypto.shared.deriveAddress(path: "m/44'/60k'/0'/0/0", key: Web3Crypto.shared.getBip32Key(seed: "eyebrow myth make situate keen verify evolve odor surprise basic capable silk kid critic filter congress hand deer push act weather patient swap follow")), nil)
         
-        XCTAssertEqual(Web3Crypto.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.getBip32Key(seed: "eyebrow myth make situate keen verify evolve odor surprise basic capable silk kid critic filter congress hand deer push act weather patient swap follow")), "0x2A2EA0930232966f5236A7C64a1BC8c0B041a9A0".hexToBytes())
+        XCTAssertEqual(Web3Crypto.shared.deriveAddress(path: "m/44'/60'/0'/0/0", key: Web3Crypto.shared.getBip32Key(seed: "eyebrow myth make situate keen verify evolve odor surprise basic capable silk kid critic filter congress hand deer push act weather patient swap follow")), "0x2A2EA0930232966f5236A7C64a1BC8c0B041a9A0".hexToBytes())
 
     }
     func testAddBigInt() {
@@ -319,19 +320,19 @@ final class EnnoUtilTests: XCTestCase {
     }
    
     func testPriv2PublicUncompressed() {
-        XCTAssertEqual(Web3Crypto.PublicKey(privKey: "a912f04788a435a4c01ef7442809af626f9670426e2d1367421c34438af9b7a6"), "0469de4780436611afed73aa8a01b504dc3b23dbaee7da635f74e9677aa8552de029a89a135bcfee832ee3ff2d51fff3b6db5dac247b05cb8f8e871e6694f0a72d")
+        XCTAssertEqual(Web3Crypto.shared.PublicKey(privKey: "a912f04788a435a4c01ef7442809af626f9670426e2d1367421c34438af9b7a6"), "0469de4780436611afed73aa8a01b504dc3b23dbaee7da635f74e9677aa8552de029a89a135bcfee832ee3ff2d51fff3b6db5dac247b05cb8f8e871e6694f0a72d")
     }
     
     func testPriv2PublicCompressed() {
-        XCTAssertEqual(Web3Crypto.PublicKey(privKey: "ad58258c043e913fcbdf207dfdbf95ffd317192b2cffad0063eb864b7ce31a6e", compressed: true), "028c5922309fed7cdd144ecd8269ad6aa9a06a3f5dbfafb267f409a0530b850c0d")
+        XCTAssertEqual(Web3Crypto.shared.PublicKey(privKey: "ad58258c043e913fcbdf207dfdbf95ffd317192b2cffad0063eb864b7ce31a6e", compressed: true), "028c5922309fed7cdd144ecd8269ad6aa9a06a3f5dbfafb267f409a0530b850c0d")
     }
     
     func testWeb3Address() {
-        XCTAssertEqual(Web3Crypto.Address(privateKey: "dcd0028e22ded7a49dc7a0f5fe586301909896cb9d1039a3d59d299dec00f090").lowercased(), "514E93bFc5a3fE50e1C9C3A082D06975da73F234".lowercased())
+        XCTAssertEqual(Web3Crypto.shared.Address(privateKey: "dcd0028e22ded7a49dc7a0f5fe586301909896cb9d1039a3d59d299dec00f090").lowercased(), "514E93bFc5a3fE50e1C9C3A082D06975da73F234".lowercased())
         
-        XCTAssertEqual(Web3Crypto.Address(publicKey: "04e68acfc0253a10620dff706b0a1b1f1f5833ea3beb3bde2250d5f271f3563606672ebc45e0b7ea2e816ecb70ca03137b1c9476eec63d4632e990020b7b6fba39").lowercased(), "90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".lowercased())
+        XCTAssertEqual(Web3Crypto.shared.Address(publicKey: "04e68acfc0253a10620dff706b0a1b1f1f5833ea3beb3bde2250d5f271f3563606672ebc45e0b7ea2e816ecb70ca03137b1c9476eec63d4632e990020b7b6fba39").lowercased(), "90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".lowercased())
         
-        XCTAssertEqual(Web3Crypto.Address(privateKey: "638a8089747e8d14d4cdcca0f512471741c2993e5e85c51a496f0d063e43631e").lowercased(), "9dE86784F52894980bD7a1789e0931aFF3Adc9Ce".lowercased())
+        XCTAssertEqual(Web3Crypto.shared.Address(privateKey: "638a8089747e8d14d4cdcca0f512471741c2993e5e85c51a496f0d063e43631e").lowercased(), "9dE86784F52894980bD7a1789e0931aFF3Adc9Ce".lowercased())
     }
     
     func testExtKey() {
