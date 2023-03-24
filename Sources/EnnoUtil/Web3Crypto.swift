@@ -39,11 +39,12 @@ public class Web3Crypto {
         return nil
     }
     
-    public func PrivateKey(privateKey: [UInt8]) throws -> Web3PrivateKey? {
+    public func Web3Sign(privateKey: [UInt8], message: [UInt8], hashSHA3: Bool = false) throws -> (v: UInt, r: [UInt8], s: [UInt8]) {
         do {
-            return try Web3PrivateKey(privateKey: privateKey)
+            let privateKey = try Web3PrivateKey(privateKey: privateKey)
+            return try privateKey.sign(message: message, hashSHA3: hashSHA3)
         } catch {
-            return nil
+            throw KeyError.internalError
         }
     }
     

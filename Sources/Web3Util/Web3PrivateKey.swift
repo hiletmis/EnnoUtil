@@ -155,15 +155,6 @@ public struct Web3PrivateKey {
             throw KeyError.keyMalformed
         }
     }
-
-    // MARK: - Errors
-
-    public enum KeyError: Error {
-
-        case internalError
-        case keyMalformed
-        case pubKeyGenerationFailed
-    }
     
 }
 

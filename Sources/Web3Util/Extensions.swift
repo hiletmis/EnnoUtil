@@ -28,3 +28,13 @@ extension Array where Element == UInt8 {
         return array
     }
 }
+
+
+// MARK: - Errors
+
+public enum KeyError: Error {
+
+    case internalError
+    case keyMalformed
+    case pubKeyGenerationFailed
+}
