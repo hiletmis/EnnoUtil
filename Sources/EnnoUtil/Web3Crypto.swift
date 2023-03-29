@@ -250,10 +250,11 @@ public class Web3Crypto {
     }
     
     public func validateMnemonic(seed: Seed) -> Bool {
+        guard seed.last != " " else { return false }
         return toEntropy(seed.split(separator: " ")) != nil
     }
      
-     public func toEntropy(_ phrase: [String.SubSequence]) -> [UInt8]? {
+     private func toEntropy(_ phrase: [String.SubSequence]) -> [UInt8]? {
          guard phrase.count > 0, phrase.count <= 24, phrase.count % 3 == 0 else { return nil }
          var hBits: UInt8 = 0, hBitsCount: UInt8 = 0
          var bytes = [UInt8]()
@@ -283,7 +284,7 @@ public class Web3Crypto {
          return entropy
      }
     
-    public func calculateChecksumBits(_ entropy: [UInt8]) -> (checksum: UInt8, bits: Int)? {
+    private func calculateChecksumBits(_ entropy: [UInt8]) -> (checksum: UInt8, bits: Int)? {
         guard entropy.count > 0, entropy.count <= 32, entropy.count % 4 == 0 else { return nil }
         let size = entropy.count / 4
         let hash = CryptoFx.sha256(input: entropy)
