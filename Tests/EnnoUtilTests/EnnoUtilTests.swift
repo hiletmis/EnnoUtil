@@ -11,6 +11,14 @@ final class EnnoUtilTests: XCTestCase {
        XCTAssertEqual(Web3Crypto.shared.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
    }
     
+    func testEntropy() {
+        XCTAssertTrue(Web3Crypto.shared.validateMnemonic(seed: EnnoUtilTests.seed))
+        XCTAssertTrue(Web3Crypto.shared.validateMnemonic(seed: "fox dumb gaze"))
+        XCTAssertTrue(Web3Crypto.shared.validateMnemonic(seed: "cupboard require spike debate palm imitate spawn humble dirt"))
+        XCTAssertFalse(Web3Crypto.shared.validateMnemonic(seed: "denial adult elevator"))
+        XCTAssertFalse(Web3Crypto.shared.validateMnemonic(seed: "cupboard require spike debate palm imitate"))
+    }
+    
     func testWeb3Account() {
         let seed = EnnoUtilTests.seed
         let path = EnnoUtilTests.path

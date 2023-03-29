@@ -250,8 +250,46 @@ public class Web3Crypto {
     }
     
     public func validateMnemonic(seed: Seed) -> Bool {
-        return true
+        return toEntropy(seed.split(separator: " ")) != nil
     }
+     
+     public func toEntropy(_ phrase: [String.SubSequence]) -> [UInt8]? {
+         guard phrase.count > 0, phrase.count <= 24, phrase.count % 3 == 0 else { return nil }
+         var hBits: UInt8 = 0, hBitsCount: UInt8 = 0
+         var bytes = [UInt8]()
+         bytes.reserveCapacity(Int((Float(phrase.count) * 10.99) / 8) + 1)
+
+         for word in phrase {
+             guard let index = Words.list.firstIndex(of: String(word)) else { return nil }
+             let remainderCount = hBitsCount + 3
+             bytes.append(hBits + UInt8(index >> remainderCount))
+             if remainderCount >= 8 {
+                 hBitsCount = remainderCount - 8
+                 bytes.append(UInt8(truncatingIfNeeded: index >> hBitsCount))
+             } else {
+                 hBitsCount = remainderCount
+             }
+             hBits = UInt8(truncatingIfNeeded: index << (8 - hBitsCount))
+         }
+
+         if phrase.count < 24 { bytes.append(hBits) }
+         
+         let checksum = bytes.last!
+         let entropy: [UInt8] = bytes.dropLast()
+
+         guard let calculated = calculateChecksumBits(entropy) else {return nil}
+         guard checksum == (calculated.checksum << (8 - calculated.bits)) else { return nil }
+
+         return entropy
+     }
+    
+    public func calculateChecksumBits(_ entropy: [UInt8]) -> (checksum: UInt8, bits: Int)? {
+        guard entropy.count > 0, entropy.count <= 32, entropy.count % 4 == 0 else { return nil }
+        let size = entropy.count / 4
+        let hash = CryptoFx.sha256(input: entropy)
+        return (hash[0] >> (8 - size), size)
+    }
+    
     
     public func bech32Address(privKey: [UInt8], hrp: String) -> String? {
         let ripesha = secp256k1Address(privKey: privKey)
