@@ -338,7 +338,11 @@ struct RIPEMD160 {
         var X = [UInt32](repeating: 0, count: 16)
         /* append the bit m_n == 1 */
         buffer.append(0x80)
-        buffer.withUnsafeBytes { _ = memcpy(&X, $0, buffer.count) }
+        buffer.withUnsafeBytes {
+            if let ptrAddress = $0.baseAddress, $0.count > 0 {
+                _ = memcpy(&X, ptrAddress, buffer.count)
+            }
+        }
         
         if (count & 63) > 55 {
             /* length goes to next block */

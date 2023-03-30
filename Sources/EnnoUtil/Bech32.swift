@@ -35,12 +35,12 @@ public class Bech32 {
         var chk: UInt32 = 1
         for v in values {
             let top = (chk >> 25)
-            if let vv = try? UInt32.init(v) {
-                chk = (chk & 0x1ffffff) << 5 ^ vv
-                for i: UInt8 in 0..<5 {
-                    chk ^= ((top >> i) & 1) == 0 ? 0 : gen[Int(i)]
-                }
+            let vv = UInt32.init(v)
+            chk = (chk & 0x1ffffff) << 5 ^ vv
+            for i: UInt8 in 0..<5 {
+                chk ^= ((top >> i) & 1) == 0 ? 0 : gen[Int(i)]
             }
+            
         }
         return chk
     }
@@ -74,9 +74,8 @@ public class Bech32 {
             let mod: UInt32 = poly ^ 1
             var ret: Data = Data(repeating: 0x00, count: 6)
             for i in 0..<6 {
-                if let byte = try? UInt8.init((mod >> (5 * (5 - i))) & 31) {
-                    ret[i] = byte
-                }
+                let byte = UInt8.init((mod >> (5 * (5 - i))) & 31)
+                ret[i] = byte
             }
             return ret
         }
@@ -149,7 +148,7 @@ public class Bech32 {
         guard verifyChecksum(hrp: hrp, checksum: values) else {
             throw DecodingError.checksumMismatch
         }
-        return (hrp, try Data(values[..<(vSize-6)]))
+        return (hrp, Data(values[..<(vSize-6)]))
     }
 }
 

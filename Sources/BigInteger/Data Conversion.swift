@@ -61,17 +61,16 @@ extension BigUInt {
             index -= 1
         }
         var word: Word = 0
-        data.enumerateBytes { p, byteIndex, stop in
-            for byte in p {
-                word <<= 8
-                word += Word(byte)
-                c += 1
-                if c == bytesPerDigit {
-                    self[index] = word
-                    index -= 1
-                    c = 0
-                    word = 0
-                }
+        
+        for byte in data {
+            word <<= 8
+            word += Word(byte)
+            c += 1
+            if c == bytesPerDigit {
+                self[index] = word
+                index -= 1
+                c = 0
+                word = 0
             }
         }
         assert(c == 0 && word == 0 && index == -1)
@@ -105,20 +104,6 @@ extension BigUInt {
             }
         }
          
-       //data.withUnsafeMutableBytes { (p: UnsafeMutablePointer<UInt8>) -> Void in
-       //    var i = byteCount - 1
-       //    for var word in self.words {
-       //        for _ in 0 ..< Word.bitWidth / 8 {
-       //            p[i] = UInt8(word & 0xFF)
-       //            word >>= 8
-       //            if i == 0 {
-       //                assert(word == 0)
-       //                break
-       //            }
-       //            i -= 1
-       //        }
-       //    }
-       //}
         return data
     }
 }
