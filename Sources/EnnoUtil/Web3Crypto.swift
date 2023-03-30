@@ -289,7 +289,6 @@ public class Web3Crypto {
         return (hash[0] >> (8 - size), size)
     }
     
-    
     public func bech32Address(privKey: [UInt8], hrp: String) -> String? {
         let ripesha = secp256k1Address(privKey: privKey)
         return bech32Address(ripesha: ripesha, hrp: hrp)
@@ -325,7 +324,6 @@ public class Web3Crypto {
             let R = String(hmac.toHexString().suffix(64))
             
             //let publicKey = Web3Util.Key.getPublicFromPrivateKey(privKey: li, compressed: false).hexToBytes()
-
             //let childPub = HexUtil.addHex(a: li, b: xPub)
             return (L.serialize().bytes, R.hexToBytes())
         }

@@ -9,46 +9,4 @@ public class Mnemonic {
                              iterations: Mnemonic.bip39IterationCount,
                              hmac: PBKDF2HMac.sha512)
     }
-    
-    public let indexes: [UInt16]
-    public var words: [String] {
-        get {
-            precondition(wordList != nil)
-            return self.indexes.map { (idx) -> String in
-                self.wordList![Int(idx)]
-            }
-        }
-    }
-    
-    public var wordList: [String]?
-    
-    public init(rawData: [UInt8]) {
-        var idx: [UInt16] = []
-        
-        for i in 0..<(rawData.count / 2) {
-            idx.append((UInt16(rawData[i * 2]) << 8) | UInt16(rawData[(i * 2) + 1]))
-        }
-        
-        self.indexes = idx
-    }
-    
-    public func toMnemonicPhrase() -> String {
-        self.words.joined(separator: " ")
-    }
-    
-    public func toBinarySeed(password: String = "") -> [UInt8] {
-        Mnemonic.toBinarySeed(mnemonicPhrase: toMnemonicPhrase(), password: password)
-    }
-    
-    public func toBinarySeed(seed: String, password: String = "") -> [UInt8] {
-        Mnemonic.toBinarySeed(mnemonicPhrase: seed, password: password)
-    }
-    
-    public func toBIP32KeyPair(seed: String, password: String = "") -> BIP32KeyPair {
-        BIP32KeyPair(fromSeed: toBinarySeed(seed: seed, password: password))
-    }
-    
-    public func toBIP32KeyPair(password: String = "") -> BIP32KeyPair {
-        BIP32KeyPair(fromSeed: toBinarySeed(password: password))
-    }
 }

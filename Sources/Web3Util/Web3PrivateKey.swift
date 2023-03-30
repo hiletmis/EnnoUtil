@@ -23,51 +23,6 @@ public struct Web3PrivateKey {
     /// Internal context for secp256k1 library calls
     private let ctx: OpaquePointer
 
-    // MARK: - Initialization
-
-    /**
-     * Initializes a new cryptographically secure `Web3PrivateKey` from random noise.
-     *
-     * The process of generating the new private key is as follows:
-     *
-     * - Generate a secure random number between 55 and 65.590. Call it `rand`.
-     * - Read `rand` bytes from `/dev/urandom` and call it `bytes`.
-     * - Create the keccak256 hash of `bytes` and initialize this private key with the generated hash.
-     */
-
-    /**
-     * Initializes a new instance of `EthereumPrivateKey` with the given `privateKey` Bytes.
-     *
-     * `privateKey` must be exactly a big endian 32 Byte array representing the private key.
-     *
-     * The number must be in the secp256k1 range as described in: https://en.bitcoin.it/wiki/Private_key
-     *
-     * So any number between
-     *
-     * 0x0000000000000000000000000000000000000000000000000000000000000001
-     *
-     * and
-     *
-     * 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140
-     *
-     * is considered to be a valid secp256k1 private key.
-     *
-     * - parameter privateKey: The private key bytes.
-     *
-     * - parameter ctx: An optional self managed context. If you have specific requirements and
-     *                  your app performs not as fast as you want it to, you can manage the
-     *                  `secp256k1_context` yourself with the public methods
-     *                  `secp256k1_default_ctx_create` and `secp256k1_default_ctx_destroy`.
-     *                  If you do this, we will not be able to free memory automatically and you
-     *                  __have__ to destroy the context yourself once your app is closed or
-     *                  you are sure it will not be used any longer. Only use this optional
-     *                  context management if you know exactly what you are doing and you really
-     *                  need it.
-     *
-     * - throws: EthereumPrivateKey.Error.keyMalformed if the restrictions described above are not met.
-     *           EthereumPrivateKey.Error.internalError if a secp256k1 library call or another internal call fails.
-     *           EthereumPrivateKey.Error.pubKeyGenerationFailed if the public key extraction from the private key fails.
-     */
     public init(privateKey: [UInt8], ctx: OpaquePointer? = nil) throws {
         guard privateKey.count == 32 else {
             throw KeyError.keyMalformed
@@ -98,7 +53,6 @@ public struct Web3PrivateKey {
             throw KeyError.pubKeyGenerationFailed
         }
 
-        // Verify private key
         try verifyPrivateKey()
     }
 
@@ -128,7 +82,6 @@ public struct Web3PrivateKey {
         secp256k1_ecdsa_recoverable_signature_serialize_compact(ctx, &output64, &recid, sig)
 
         guard recid == 0 || recid == 1 else {
-            // Well I guess this one should never happen but to avoid bigger problems...
             throw KeyError.internalError
         }
 
