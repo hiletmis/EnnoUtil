@@ -160,8 +160,6 @@ public class Web3Crypto {
                     return nil
                 }
             }
-            
-
         }
         
         let keyBytes:[UInt8] = xPub

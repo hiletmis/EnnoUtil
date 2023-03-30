@@ -1,10 +1,3 @@
-public enum BIP32KeyTag: UInt8 {
-    case template = 0xA1
-    case pubKey = 0x80
-    case privKey = 0x81
-    case chainCode = 0x82
-}
-
 public struct BIP32KeyPair {
     public let privateKey: [UInt8]?
     public let chainCode: [UInt8]?

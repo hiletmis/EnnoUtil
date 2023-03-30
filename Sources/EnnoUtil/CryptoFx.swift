@@ -50,4 +50,8 @@ class CryptoFx {
         return RIPEMD160.hash(message: Data(input)).bytes
     }
     
+    public class func ripemd160HMAC(key: String, message: String) -> Bytes {
+        return RIPEMD160.hmac(key: key, message: message).bytes
+    }
+    
 }

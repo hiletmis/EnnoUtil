@@ -11,7 +11,7 @@ final class EnnoUtilTests: XCTestCase {
        XCTAssertEqual(Web3Crypto.shared.getFingerprint(seed: EnnoUtilTests.seed), [115, 93, 68, 69])
    }
     
-    func testEntropy() {
+    func testBIP39Validity() {
         XCTAssertTrue(Web3Crypto.shared.validateMnemonic(seed: EnnoUtilTests.seed))
         XCTAssertTrue(Web3Crypto.shared.validateMnemonic(seed: "fox dumb gaze"))
         XCTAssertFalse(Web3Crypto.shared.validateMnemonic(seed: "fox dumb gaze "))
@@ -36,19 +36,7 @@ final class EnnoUtilTests: XCTestCase {
         
         XCTAssertTrue(isAddress && isPubKey && isPrivKry)
     }
-    
-    func testXprivXpub() {
-        let xPriv = "xprv9s21ZrQH143K3G3gd4fbajvM6CoU7aL1Qk4H8tRkR5g6M9NqUmbvCeoWo23NtnHRdwaa3LySYiBbB48TbrYYnNDBc3AAmpJndeCQdeMxFbz"
-        let xPub = ""
-        if let xPrv = CryptoUtil.shared.web3xPrv(seed: EnnoUtilTests.seed, path: "m/") {
-            let xAccountDepth = Web3Crypto.shared.deriveExtKey(xPrv: xPrv, index: 0)
 
-            print(xPrv)
-            
-        }
-        
-    }
-    
     func testAccountXprv() {
 
         let key1 = "xprv9ykwE8ef1StdEYpYNzd7UAu1vmeakgpDSV99uh6f3AZkfM3ZQv1mtATiGnH3APrTy4sLDXXvoBxJYRDBKLUMektKfVkLcDVWkSEWUBfd1rh"
@@ -344,8 +332,26 @@ final class EnnoUtilTests: XCTestCase {
         XCTAssertEqual(Web3Crypto.shared.Address(privateKey: "638a8089747e8d14d4cdcca0f512471741c2993e5e85c51a496f0d063e43631e").lowercased(), "9dE86784F52894980bD7a1789e0931aFF3Adc9Ce".lowercased())
     }
     
-    func testExtKey() {
-        
+    func testEntropy() {
+        let seed32 = CryptoUtil.shared.randomSeed(entropy: .e32).split(separator: " ").count
+        let seed64 = CryptoUtil.shared.randomSeed(entropy: .e64).split(separator: " ").count
+        let seed96 = CryptoUtil.shared.randomSeed(entropy: .e96).split(separator: " ").count
+        let seed128 = CryptoUtil.shared.randomSeed(entropy: .e128).split(separator: " ").count
+        let seed160 = CryptoUtil.shared.randomSeed(entropy: .e160).split(separator: " ").count
+        let seed192 = CryptoUtil.shared.randomSeed(entropy: .e192).split(separator: " ").count
+        let seed224 = CryptoUtil.shared.randomSeed(entropy: .e224).split(separator: " ").count
+        let seed256 = CryptoUtil.shared.randomSeed(entropy: .e256).split(separator: " ").count
+        let defaultEntropy = CryptoUtil.shared.randomSeed().split(separator: " ").count
+        let words = [3, 6, 9, 12, 15, 18, 21, 24, 24]
+        XCTAssertEqual([seed32, seed64 , seed96 , seed128, seed160, seed192, seed224, seed256, defaultEntropy], words)
+    }
+    
+    func testRipemd160() {
+        XCTAssertEqual(CryptoFx.ripemd160(input: [0]), "c81b94933420221a7ac004a90242d8b1d3e5070d".hexToBytes())
+    }
+    
+    func testRipemd160HMAC() {
+        XCTAssertEqual(CryptoFx.ripemd160HMAC(key: "01", message: "01"), "195db15882ef6d87b0032ef34491234d7ad07580".hexToBytes())
     }
     
 }
